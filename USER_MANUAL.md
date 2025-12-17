@@ -1,118 +1,97 @@
-# Vṛthā - User Manual
+# Vṛthā V2.0 - Comprehensive User Manual
 
-**Version**: 2.0  
 **Target**: WordPress Environments  
-**Purpose**: Advanced Vulnerability Assessment and Penetration Testing (VAPT)
+**Role**: Automated Red Team VAPT Framework  
+**AI Engine**: `sec_ai` (Red Team Persona)
 
 ---
 
 ## 📖 Introduction
-**Vṛthā** (formerly known as WP_VAULT) is a fully automated, agentic-style security framework for WordPress. It combines traditional security tools (Nuclei, WPScan, Feroxbuster) with modern AI analysis (OpenRouter/GPT-4) to provide deep insights, reliable content discovery, and automated threat modeling.
-
-## 🚀 Key Features
-1.  **Clean UI**: Minimalist, spinner-based interface.
-2.  **Auto-Configuration**: Smart detection of installed tools.
-3.  **Deep Discovery**:
-    *   **Feroxbuster**: Auto-tuned fuzzing for directories.
-    *   **Gospider**: JavaScript crawling and parameter mining.
-4.  **AI Architecture Analysis**:
-    *   Automatically answers: "How does this app pass data?", "Is it multi-tenant?", "What is the threat model?"
-    *   Generates a `architecture_threat_model.md` artifact.
-5.  **Smart Reporting**: Aggregates all findings into a Markdown and HTML report using AI.
+Vṛthā is an advanced automation framework that treats "Vulnerability Assessment" not as a list of bugs, but as an integrated **Red Team operation**. It chains industry-standard tools (Nuclei, WPScan, Amass) with a custom Python AI engine to deliver:
+1.  **Noise-Free Recon**: Optimized DNS and Tech Detection.
+2.  **Deep Discovery**: Regex-based secret scraping across the entire site.
+3.  **Actionable Intelligence**: An AI Analyst that writes Exploit PoCs and validates risk.
 
 ---
 
-## 🛠 Installation
+## 🚀 The 5-Phase Workflow
 
-### Option A: Easy Install (Recommended)
-This method installs all dependencies (Go, Python, Ruby tools) for you.
+### Phase 1: Pre-Flight & Recon
+*   **Connectivity Check**: The system validates your OpenRouter API key and checks connectivity to the `qwen/gpt-4` model.
+*   **Subdomain Enum**: Uses `subfinder`, `amass`, and `crt.sh` to map the attack surface.
+*   **URL Discovery**: Uses `katana` to crawl the site and build a map of endpoints.
 
-```bash
-git clone https://github.com/yourusername/vrtha.git
-cd vrtha
-chmod +x install.sh
-sudo ./install.sh
-```
+### Phase 2: Analysis
+*   **Tech Detection**: Replaces legacy tools with **HTTPX -tech-detect**. This identifies CMS versions, server types, and frameworks using the optimized Wappalyzer engine.
+*   **DNS Security**: Queries for SPF, DMARC, and MX records to identify email spoofing risks.
 
-### Option B: Manual Install
-If you prefer to install tools yourself:
-1.  Install: `subfinder`, `amass`, `katana`, `httpx`, `nuclei`, `wpscan`, `gowitness`, `feroxbuster`, `gospider`.
-2.  Run the setup script to map them:
-    ```bash
-    ./setup.sh
-    ```
+### Phase 3: Deep Discovery & Secrets
+*   **Uncover Scan**: Queries Shodan/Censys (if keys provided) to find exposed ports and services.
+*   **Deep Secrets Scraping**: A custom multi-threaded Python scraper (`utils/regex_scraper.py`) fetches every unique URL found in Phase 1 and scans the *response body* for:
+    *   Emails (for phishing/password spraying).
+    *   API Keys (AWS, Google, Stripe, Slack).
 
----
+### Phase 4: Vulnerability Scanning
+*   **Nuclei**: Runs custom and community templates focusing on WordPress CVEs.
+*   **WPScan**: Enumerates users, plugins, themes, and Timthumb vulnerabilities.
+*   **TruffleHog**: Scans the filesystem for leftover secrets in backup files.
 
-## ⚙️ Configuration
-
-### 1. API Keys (Vital for AI)
-Vṛthā requires an **OpenRouter API Key** for its AI features.
-*   **Prompted Setup**: The first time you run `./main.sh`, it will ask for your key if missing.
-*   **Manual**: Edit `config/config.sh`:
-    ```bash
-    OPENROUTER_API_KEY="sk-..."
-    WPSCAN_API_TOKEN="..."
-    ```
-
-### 2. Tuning
-You can adjust tool behavior in `config/config.sh`:
-*   `WPSCAN_OPTIONS`: Change thread count, wordlists, or stealth modes.
-*   `NUCLEI_OPTIONS`: Adjust rate limits (`-rl`) or severities.
+### Phase 5: The Red Team AI Analyst
+*   **Ingestion**: The `sec_ai` module parses the JSON results from all previous phases.
+*   **Contextualization**: It correlates "Outdated Plugin" (WPScan) with "RCE Vulnerability" (Nuclei) and "Exposed API Key" (Secrets).
+*   **Reporting**: Generates a professional Markdown report with:
+    *   **Exploit Proof-of-Concepts (PoCs)**.
+    *   **Risk Justification** (Critical/High/Medium).
+    *   **Remediation Steps**.
 
 ---
 
-## 🏃 processing
-Run the tool against your target domain:
+## ⚙️ Configuration Guide
 
-```bash
-./main.sh example.com
-```
+### 1. API Keys (Essential)
+The framework monitors `config/config.sh` for keys.
+*   **OPENROUTER_API_KEY**: Required for the AI Analyst.
+*   **WPSCAN_API_TOKEN**: Recommended for the latest vulnerability database.
+*   **SHODAN_API_KEY**: Optional (via `~/.config/uncover/provider-config.yaml`) for Cloud Recon.
 
-### The Scan Phases
-1.  **Reconnaissance**: Subdomain enumeration (Subfinder, Amass) and URL Discovery (Katana).
-2.  **Analysis**: Tech detection (HTTPx), DNS, Network, and Firewall checks (Wafw00f).
-3.  **Deep Discovery**:
-    *   **Fuzzing**: Uses Feroxbuster to find hidden paths.
-    *   **Spidering**: uses Gospider to find JS files and parameters.
-4.  **Vulnerability Scanning**:
-    *   **Nuclei**: Custom & Official WP templates.
-    *   **WPScan**: Deep WordPress enumeration (Users, Plugins, Themes, Timthumbs).
-5.  **AI Analysis**:
-    *   Constructs a Threat Model.
-    *   Generates a final impact report.
+### 2. Customizing AI
+You can modify the AI persona in `sec_ai/prompts.py`:
+*   **SYSTEM_PROMPT**: Defines the "Red Team" rules (e.g., "Always provide PoCs").
+*   **ANALYSIS_PROMPT**: Defines the report structure.
+
+### 3. Tuning Scans
+Edit `config/config.sh`:
+*   **Speed**: Increase `HTTPX_THREADS` or `NUCLEI_OPTIONS` (rate limit).
+*   **Scope**: Adjust `HTTPX_MATCHER_DOMAINS` to filter interesting subdomains.
 
 ---
 
-## 📂 Output Structure
-Results are saved in `results/<target>_<date>/`:
+## 🛠 Troubleshooting
 
-| Directory | Content |
+**Problem: "AI Connectivity Check Failed"**
+*   **Cause**: Invalid API Key or OpenRouter downtime.
+*   **Fix**: Check your key in `config/config.sh`. The script will auto-disable AI features to let the rest of the scan proceed.
+
+**Problem: "Uncover provider config not found"**
+*   **Cause**: You haven't set up the Uncover tool's config file.
+*   **Fix**: Create `~/.config/uncover/provider-config.yaml` with your Shodan/Censys keys. The tool will warn you but continue with public sources.
+
+**Problem: "Secrets Scan is slow"**
+*   **Cause**: The site has thousands of URLs.
+*   **Fix**: The scraper currently scans *all* URLs. This is by design for maximum depth.
+
+---
+
+## 📂 Output Directory Explained
+Located in `results/<target>_<date>/`:
+
+| Folder | Description |
 | :--- | :--- |
-| `final_report/` | **Start Here**. Contains `vapt_<target>_report.html` and `.md`. |
-| `context/` | AI-generated `architecture_threat_model.md`. |
-| `content/` | Results from Feroxbuster (hidden files/dirs). |
-| `spidering/` | Discovered JS files and link output. |
-| `nuclei/` | JSON findings from Nuclei. |
-| `wordpress/` | Raw WPScan logs. |
-| `screenshots/` | Validated screenshots of active URLs. |
+| **`final_report/`** | **Start Here**. The AI-generated Red Team Report. |
+| `nuclei/` | Raw JSON vulnerabilities. |
+| `secrets/` | `vapt_<target>_scraped_secrets.txt` (Emails/Keys). |
+| `httpx/` | Tech stack and status codes. |
+| `subdomains/` | Raw subdomain lists. |
 
 ---
-
-## ❓ Troubleshooting
-
-**Q: "Tool not found" error?**  
-A: Run `./check_deps.sh` to see what is missing. Run `./install.sh` to fix it.
-
-**Q: Scan is too slow?**  
-A: Edit `config/config.sh`.
-*   Increase `NUCLEI_OPTIONS ... -rl 100` (Rate limit).
-*   Add `--fast` to WPScan options (though this reduces accuracy).
-
-**Q: AI analysis skipped?**  
-A: Ensure `OPENROUTER_API_KEY` is set in `config/config.sh`.
-
----
-
-**Author**: Sai  
-**License**: MIT
+**Author**: Sai | **Version**: 2.0
