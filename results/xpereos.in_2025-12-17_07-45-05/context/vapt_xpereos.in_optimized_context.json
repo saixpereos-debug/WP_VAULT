@@ -1,0 +1,98 @@
+{
+  "target": "xpereos.in",
+  "scan_date": "2025-12-17 08:00:24",
+  "summary": {
+    "subdomains": {
+      "count": 9,
+      "items": [
+        "hffhhhfggfgfgf.xpereos.in",
+        "mail.xpereos.in",
+        "media.xpereos.in",
+        "new.xpereos.in",
+        "smtp.xpereos.in",
+        "squad.xpereos.in",
+        "www.xpereos.in",
+        "*.xpereos.in",
+        "xpereos.in"
+      ]
+    },
+    "urls": {
+      "count": 10,
+      "items": [
+        "https://hffhhhfggfgfgf.xpereos.in",
+        "https://mail.xpereos.in",
+        "https://media.xpereos.in",
+        "https://new.xpereos.in",
+        "https://smtp.xpereos.in",
+        "https://squad.xpereos.in",
+        "https://www.xpereos.in",
+        "https://*.xpereos.in",
+        "https://xpereos.in",
+        "https://xpereos.in/hcdn-cgi/jschallenge"
+      ]
+    },
+    "technologies": {
+      "count": 8,
+      "items": [
+        "HTTPServer",
+        "Country",
+        "UncommonHeaders",
+        "IP",
+        "X-UA-Compatible",
+        "Title",
+        "Script",
+        "HTML5"
+      ]
+    },
+    "vulnerabilities": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "info": 0,
+      "items": []
+    }
+  },
+  "detailed_findings": [],
+  "network_info": {
+    "ip_address": "2",
+    "open_ports": [
+      {
+        "port": "80",
+        "service": "unknown"
+      },
+      {
+        "port": "443",
+        "service": "unknown"
+      }
+    ]
+  },
+  "dns_info": {
+    "A": [
+      {
+        "domain": "xpereos.in",
+        "ip": "93.127.173.83"
+      },
+      {
+        "domain": "xpereos.in",
+        "ip": "147.79.69.174"
+      }
+    ],
+    "MX": [
+      {
+        "domain": "xpereos.in",
+        "priority": "10",
+        "mail_server": "mx2.hostinger.com."
+      },
+      {
+        "domain": "xpereos.in",
+        "priority": "5",
+        "mail_server": "mx1.hostinger.com."
+      }
+    ]
+  },
+  "firewall_info": {
+    "waf_detected": false,
+    "cloudflare": false
+  }
+}

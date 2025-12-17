@@ -1,0 +1,81 @@
+IP Address:
+2a02:4780:1f:861d:fdeb:6da9:5655:c800
+
+Whois Information:
+Domain Name: xpereos.in
+Registry Domain ID: DO_3cbea27c9ef52d22d4ef8ff4e337ef6c-NIXI
+Registrar WHOIS Server: whois.hostinger.com
+Registrar URL: http://www.hostinger.com
+Updated Date: 2025-10-08T14:48:18.978Z
+Creation Date: 2025-10-03T14:47:25.998Z
+Registry Expiry Date: 2026-10-03T14:47:25.998Z
+Registrar: HOSTINGER operations, UAB
+Registrar IANA ID: 1636
+Registrar Abuse Contact Email: domains@hostinger.com
+Registrar Abuse Contact Phone: +3.7068424669
+Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
+Registry Registrant ID: REDACTED FOR PRIVACY
+Registrant Name: REDACTED FOR PRIVACY
+Registrant Organization: Xpereos
+Registrant Street: REDACTED FOR PRIVACY
+Registrant City: REDACTED FOR PRIVACY
+Registrant State/Province: Rajasthan
+Registrant Postal Code: REDACTED FOR PRIVACY
+Registrant Country: IN
+Registrant Phone: REDACTED FOR PRIVACY
+Registrant Fax: REDACTED FOR PRIVACY
+Registrant Email: Please query the RDDS service of the Registrar of Record identified in this output for information on how to contact the Registrant, Admin, or Tech contact of the queried domain name.
+Registry Admin ID: REDACTED FOR PRIVACY
+Admin Name: REDACTED FOR PRIVACY
+Admin Organization: REDACTED FOR PRIVACY
+Admin Street: REDACTED FOR PRIVACY
+Admin City: REDACTED FOR PRIVACY
+Admin State/Province: REDACTED FOR PRIVACY
+Admin Postal Code: REDACTED FOR PRIVACY
+Admin Country: REDACTED FOR PRIVACY
+Admin Phone: REDACTED FOR PRIVACY
+Admin Fax: REDACTED FOR PRIVACY
+Admin Email: Please query the RDDS service of the Registrar of Record identified in this output for information on how to contact the Registrant, Admin, or Tech contact of the queried domain name.
+Registry Tech ID: REDACTED FOR PRIVACY
+Tech Name: REDACTED FOR PRIVACY
+Tech Organization: REDACTED FOR PRIVACY
+Tech Street: REDACTED FOR PRIVACY
+Tech City: REDACTED FOR PRIVACY
+Tech State/Province: REDACTED FOR PRIVACY
+Tech Postal Code: REDACTED FOR PRIVACY
+Tech Country: REDACTED FOR PRIVACY
+Tech Phone: REDACTED FOR PRIVACY
+Tech Fax: REDACTED FOR PRIVACY
+Tech Email: Please query the RDDS service of the Registrar of Record identified in this output for information on how to contact the Registrant, Admin, or Tech contact of the queried domain name.
+Registry Billing ID: REDACTED FOR PRIVACY
+Billing Name: REDACTED FOR PRIVACY
+Billing Organization: REDACTED FOR PRIVACY
+Billing Street: REDACTED FOR PRIVACY
+Billing City: REDACTED FOR PRIVACY
+Billing State/Province: REDACTED FOR PRIVACY
+Billing Postal Code: REDACTED FOR PRIVACY
+Billing Country: REDACTED FOR PRIVACY
+Billing Phone: REDACTED FOR PRIVACY
+Billing Fax: REDACTED FOR PRIVACY
+
+Geolocation Information:
+{
+  "status": "success",
+  "country": "India",
+  "countryCode": "IN",
+  "region": "MH",
+  "regionName": "Maharashtra",
+  "city": "Mumbai",
+  "zip": "400017",
+  "lat": 19.0748,
+  "lon": 72.8856,
+  "timezone": "Asia/Kolkata",
+  "isp": "HOSTINGER IN",
+  "org": "Hostinger International Ltd.",
+  "as": "AS47583 Hostinger International Limited",
+  "query": "2a02:4780:1f:861d:fdeb:6da9:5655:c800"
+}
+
+Port Scan (Naabu):
+xpereos.in:80
+xpereos.in:443

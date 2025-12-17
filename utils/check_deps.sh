@@ -71,6 +71,13 @@ check_tool "Gowitness" "$GOWITNESS_PATH"
 check_tool "Naabu" "$NAABU_PATH"
 check_tool "Uncover" "$UNCOVER_PATH"
 check_tool "WhatWeb" "$WHATWEB_PATH"
+# V3 Tools
+check_tool "Gau" "$GAU_PATH"
+check_tool "Waybackurls" "$WAYBACKURLS_PATH"
+check_tool "TruffleHog" "$TRUFFLEHOG_PATH"
+check_tool "Ffuf" "$FFUF_PATH"
+check_tool "Dalfox" "$DALFOX_PATH"
+check_tool "Sqlmap" "$SQLMAP_PATH"
 
 # Check New Tools (Added in install.sh, but might not be in config yet)
 check_command "Feroxbuster" "feroxbuster"

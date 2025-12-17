@@ -79,6 +79,17 @@ update_tool_path "WAFW00F_PATH" "wafw00f wafw00f.py"
 update_tool_path "GOWITNESS_PATH" "gowitness"
 update_tool_path "WPSCAN_PATH" "wpscan"
 update_tool_path "NUCLEI_PATH" "nuclei"
+update_tool_path "NAABU_PATH" "naabu"
+update_tool_path "UNCOVER_PATH" "uncover"
+update_tool_path "WHATWEB_PATH" "whatweb"
+
+# V3 Tools Detection
+update_tool_path "GAU_PATH" "gau"
+update_tool_path "WAYBACKURLS_PATH" "waybackurls"
+update_tool_path "TRUFFLEHOG_PATH" "trufflehog"
+update_tool_path "FFUF_PATH" "ffuf"
+update_tool_path "DALFOX_PATH" "dalfox"
+update_tool_path "SQLMAP_PATH" "sqlmap"
 
 echo "------------------------------------------------"
 echo -e "${YELLOW}Checking critical dependencies...${NC}"

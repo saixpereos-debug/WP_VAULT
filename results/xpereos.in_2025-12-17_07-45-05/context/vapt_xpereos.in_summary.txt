@@ -1,0 +1,13 @@
+VAPT Summary for xpereos.in
+Scan Date: 2025-12-17 08:00:24
+
+Subdomains Found: 9
+URLs Discovered: 10
+Technologies Identified: 8
+
+Vulnerability Summary:
+  Critical: 0
+  High: 0
+  Medium: 0
+  Low: 0
+  Info: 0

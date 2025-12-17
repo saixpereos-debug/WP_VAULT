@@ -14,6 +14,19 @@ if [ -z "$UNCOVER_PATH" ] || [ ! -x "$UNCOVER_PATH" ]; then
     echo "Uncover tool not configured. Skipping." >> "${LOG_FILE}"
     exit 0
 fi
+# Check for Uncover configuration (API keys)
+# Uncover uses ~/.config/uncover/provider-config.yaml
+UNCOVER_CONFIG="$HOME/.config/uncover/provider-config.yaml"
+
+if [ ! -f "$UNCOVER_CONFIG" ]; then
+    echo -e "${YELLOW}[!] Uncover provider config not found at $UNCOVER_CONFIG${NC}"
+    echo -e "${YELLOW}    Deep cloud reconnaissance (Shodan/Censys) will likely fail or return limited results.${NC}"
+    echo -e "${YELLOW}    To fix: Create the config file or export API keys (SHODAN_API_KEY, etc.)${NC}"
+    echo "Uncover config missing. Proceeding with limited/public search..." >> "${LOG_FILE}"
+    # We do not exit, we just warn and proceed as requested ("option to ignore")
+else
+    echo "Uncover config found. Proceeding with authenticated search..." >> "${LOG_FILE}"
+fi
 
 echo "Running Uncover Recon..." >> "${LOG_FILE}"
 

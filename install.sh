@@ -68,6 +68,27 @@ log_msg() {
     echo -e "$1" >> "$INSTALL_LOG"
 }
 
+# Pre-flight Check: Libcurl Conflict (Debian 12)
+if command -v dpkg-query >/dev/null; then
+    CURRENT_CURL=$(dpkg-query -W -f='${Version}' libcurl4 2>/dev/null)
+    # Check if it looks like a backport (contains ~bpo)
+    if [[ "$CURRENT_CURL" == *"~bpo"* ]]; then
+        log_msg "\n${YELLOW}[!] Detected potential Libcurl Backport Conflict ($CURRENT_CURL).${NC}"
+        log_msg "${YELLOW}[!] Running auto-fix script to ensure clean dependencies...${NC}"
+        
+        chmod +x fix_libcurl.sh 2>/dev/null
+        if [ -x "./fix_libcurl.sh" ]; then
+             ./fix_libcurl.sh >> "$INSTALL_LOG" 2>&1
+             if [ $? -eq 0 ]; then
+                 log_msg "${GREEN}[✔] Libcurl conflict resolved successfully.${NC}"
+             else
+                 log_msg "${RED}[!] Failed to auto-resolve Libcurl conflict. Check install_log.txt.${NC}"
+                 # We continue, but it might fail later
+             fi
+        fi
+    fi
+fi
+
 # 1. System Updates & Base Dependencies
 log_msg "\n${YELLOW}[+] Updating system package lists...${NC}"
 if command -v apt-get >/dev/null; then
@@ -142,6 +163,28 @@ install_go_tool "gowitness" "github.com/sensepost/gowitness"
 install_go_tool "gospider" "github.com/jaeles-project/gospider"
 install_go_tool "naabu" "github.com/projectdiscovery/naabu/v2/cmd/naabu"
 install_go_tool "uncover" "github.com/projectdiscovery/uncover/cmd/uncover"
+# V3 Tools
+install_go_tool "gau" "github.com/lc/gau/v2/cmd/gau"
+install_go_tool "waybackurls" "github.com/tomnomnom/waybackurls"
+# V3 Tools
+install_go_tool "gau" "github.com/lc/gau/v2/cmd/gau"
+install_go_tool "waybackurls" "github.com/tomnomnom/waybackurls"
+install_go_tool "ffuf" "github.com/ffuf/ffuf/v2"
+install_go_tool "dalfox" "github.com/hahwul/dalfox/v2"
+
+# Install TruffleHog (Official Binary Script)
+# Go install for v3 is often problematic, so we use the official script
+log_msg "\n${YELLOW}[+] Installing TruffleHog...${NC}"
+if ! command -v trufflehog >/dev/null; then
+    curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sudo sh -s -- -b /usr/local/bin >> "$INSTALL_LOG" 2>&1
+    if [ $? -eq 0 ]; then
+        log_msg "${GREEN}    Successfully installed trufflehog${NC}"
+    else
+        log_msg "${RED}    Failed to install trufflehog${NC}"
+    fi
+else
+    log_msg "${GREEN}  -> trufflehog is already installed${NC}"
+fi
 
 # Install Feroxbuster (Rust tool, installing binary)
 log_msg "\n${YELLOW}[+] Installing Feroxbuster...${NC}"
@@ -152,13 +195,20 @@ else
     log_msg "${GREEN}  -> feroxbuster is already installed${NC}"
 fi
 
-# 4. Install WAFW00F (Python)
+# 4. Install WAFW00F & SQLMap (Python)
 log_msg "\n${YELLOW}[+] Installing Python Tools...${NC}"
 if ! command -v wafw00f >/dev/null; then
     log_msg "${BLUE}  -> Installing wafw00f...${NC}"
     pip3 install wafw00f --break-system-packages >> "$INSTALL_LOG" 2>&1 || pip3 install wafw00f >> "$INSTALL_LOG" 2>&1
 else
     log_msg "${GREEN}  -> wafw00f is already installed${NC}"
+fi
+
+if ! command -v sqlmap >/dev/null; then
+    log_msg "${BLUE}  -> Installing sqlmap...${NC}"
+    sudo apt-get install -y sqlmap >> "$INSTALL_LOG" 2>&1 || log_msg "${RED}Failed to install sqlmap (try manual install)${NC}"
+else
+    log_msg "${GREEN}  -> sqlmap is already installed${NC}"
 fi
 
 # Install Python dependencies for the script
@@ -174,14 +224,22 @@ else
     log_msg "${GREEN}  -> wpscan is already installed${NC}"
 fi
 
-# 6. Install WhatWeb (Ruby)
+# 6. Install WhatWeb (Ruby/Apt)
 log_msg "\n${YELLOW}[+] Installing WhatWeb...${NC}"
 if ! command -v whatweb >/dev/null; then
-    log_msg "${BLUE}  -> Installing WhatWeb...${NC}"
+    log_msg "${BLUE}  -> Installing WhatWeb via Gem...${NC}"
     sudo gem install whatweb >> "$INSTALL_LOG" 2>&1
+    
+    # Fallback to APT if Gem fails
+    if ! command -v whatweb >/dev/null; then
+         log_msg "${YELLOW}  -> Gem install failed. Trying APT...${NC}"
+         sudo apt-get install -y whatweb >> "$INSTALL_LOG" 2>&1
+    fi
 else
     log_msg "${GREEN}  -> WhatWeb is already installed${NC}"
 fi
+
+
 
 # 7. Run Configuration
 log_msg "\n${YELLOW}[+] Running Auto-Configuration (setup.sh)...${NC}"

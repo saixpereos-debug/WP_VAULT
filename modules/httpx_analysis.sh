@@ -17,12 +17,13 @@ else
     echo "https://${TARGET}" > "${URL_LIST}"
 fi
 
-# WhatWeb Fingerprinting
-echo "Running WhatWeb..." >> "${LOG_FILE}"
-if [ -x "$WHATWEB_PATH" ]; then
-    ${WHATWEB_PATH} "https://${TARGET}" --color=never --log-json="${OUTPUT_DIR}/vapt_${TARGET}_whatweb.json" >/dev/null 2>&1
-    # Merge WhatWeb findings into a summary text if needed or just keep json
-fi
+# Tech Detection
+# We prioritize httpx -tech-detect (which uses wappalyzer fingerprints) as it is faster and built-in.
+# If wappalyzer-cli is installed, we can use it for deeper scan, but for now we rely on httpx.
+
+echo "Running Tech Detection (HTTPX)..." >> "${LOG_FILE}"
+# WhatWeb is deprecated in this workflow in favor of modern JSON-based tools
+# if [ -x "$WHATWEB_PATH" ]; then ... fi  <-- REMOVED
 
 # Run httpx with enhanced flags
 # -sc: status code

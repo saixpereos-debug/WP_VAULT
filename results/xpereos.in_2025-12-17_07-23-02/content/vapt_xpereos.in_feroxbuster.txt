@@ -1,0 +1,416 @@
+                ),
+            ),
+        "~",
+        ],
+        },
+    ],
+    },
+}
+        ".1",
+        100,
+        101,
+        102,
+        103,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        226,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        307,
+        308,
+        "3gp",
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        421,
+        422,
+        423,
+        424,
+        425,
+        426,
+        428,
+        429,
+        431,
+        451,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        510,
+        511,
+        "aac",
+            "accept": "*/*",
+        accepts: Accepts,
+    add_slash: false,
+        "apng",
+    auto_bail: false,
+    auto_tune: true,
+        "avif",
+    backup_extensions: [
+        ".bak",
+        ".bak2",
+        "bmp",
+    cached_stdin: [],
+            cannot_be_a_base: false,
+    client_cert: "",
+    client: Client {
+    client_key: "",
+    collect_backups: false,
+    collect_extensions: false,
+    collect_words: false,
+    config: "",
+Configuration {
+        "css",
+        "cur",
+    data: [],
+    debug_log: "",
+        default_headers: {
+    depth: 2,
+                Domain(
+    dont_collect: [
+    dont_filter: false,
+        "eot",
+    extensions: [
+    extract_links: true,
+    filter_line_count: [],
+    filter_regex: [],
+    filter_similar: [],
+    filter_size: [],
+    filter_status: [],
+    filter_word_count: [],
+        "flac",
+    force_recursion: false,
+            fragment: None,
+        "GET",
+        "gif",
+        "gz",
+    headers: {},
+            host: Some(
+        "html",
+https://xpereos.in/
+https://xpereos.in/a
+https://xpereos.in/about-us
+https://xpereos.in/admin
+https://xpereos.in/Admin
+https://xpereos.in/application/
+https://xpereos.in/c
+https://xpereos.in/calendar.txt
+https://xpereos.in/comments/feed
+https://xpereos.in/component
+https://xpereos.in/contact
+https://xpereos.in/doc
+https://xpereos.in/extras
+https://xpereos.in/fckeditor.txt
+https://xpereos.in/feed
+https://xpereos.in/home
+https://xpereos.in/home.txt
+https://xpereos.in/Images.txt
+https://xpereos.in/index.php
+https://xpereos.in/internal.html
+https://xpereos.in/log
+https://xpereos.in/login
+https://xpereos.in/mails.txt
+https://xpereos.in/main.html
+https://xpereos.in/member
+https://xpereos.in/poll.php
+https://xpereos.in/public/
+https://xpereos.in/public/css/
+https://xpereos.in/public/css/preloaders/
+https://xpereos.in/rss
+https://xpereos.in/s
+https://xpereos.in/t
+https://xpereos.in/tags.txt
+https://xpereos.in/__trashed-2
+https://xpereos.in/vp.txt
+https://xpereos.in/_vti_txt
+https://xpereos.in/wp-admin
+https://xpereos.in/wp-admin/
+https://xpereos.in/wp-admin/2012
+https://xpereos.in/wp-admin/3.txt
+https://xpereos.in/wp-admin/404
+https://xpereos.in/wp-admin/a
+https://xpereos.in/wp-admin/admin-ajax.php
+https://xpereos.in/wp-admin/administration
+https://xpereos.in/wp-admin/admin.php
+https://xpereos.in/wp-admin/bg.php
+https://xpereos.in/wp-admin/c
+https://xpereos.in/wp-admin/cgi-local.html
+https://xpereos.in/wp-admin/cgi-local.txt
+https://xpereos.in/wp-admin/css
+https://xpereos.in/wp-admin/cs.txt
+https://xpereos.in/wp-admin/customize.php
+https://xpereos.in/wp-admin/d
+https://xpereos.in/wp-admin/dbboon.txt
+https://xpereos.in/wp-admin/demo.txt
+https://xpereos.in/wp-admin/extras.php
+https://xpereos.in/wp-admin/feed
+https://xpereos.in/wp-admin/fonts.html
+https://xpereos.in/wp-admin/htmlarea.html
+https://xpereos.in/wp-admin/i
+https://xpereos.in/wp-admin/images
+https://xpereos.in/wp-admin/import.php
+https://xpereos.in/wp-admin/includes
+https://xpereos.in/wp-admin/index
+https://xpereos.in/wp-admin/index.php
+https://xpereos.in/wp-admin/install.php
+https://xpereos.in/wp-admin/js
+https://xpereos.in/wp-admin/kernel.txt
+https://xpereos.in/wp-admin/menu.php
+https://xpereos.in/wp-admin/menu.txt
+https://xpereos.in/wp-admin/month.txt
+https://xpereos.in/wp-admin/mt
+https://xpereos.in/wp-admin/_mygallery.php
+https://xpereos.in/wp-admin/old.php
+https://xpereos.in/wp-admin/online
+https://xpereos.in/wp-admin/out
+https://xpereos.in/wp-admin/p
+https://xpereos.in/wp-admin/panel.html
+https://xpereos.in/wp-admin/pl.html
+https://xpereos.in/wp-admin/pl.php
+https://xpereos.in/wp-admin/p.php
+https://xpereos.in/wp-admin/redirect.html
+https://xpereos.in/wp-admin/registration
+https://xpereos.in/wp-admin/registration.txt
+https://xpereos.in/wp-admin/Resources.html
+https://xpereos.in/wp-admin/ru
+https://xpereos.in/wp-admin/ru.php
+https://xpereos.in/wp-admin/s
+https://xpereos.in/wp-admin/SpryAssets.html
+https://xpereos.in/wp-admin/st
+https://xpereos.in/wp-admin/t
+https://xpereos.in/wp-admin/templets
+https://xpereos.in/wp-admin/themes.php
+https://xpereos.in/wp-admin/_tmpfileop
+https://xpereos.in/wp-admin/user
+https://xpereos.in/wp-admin/wishlist
+https://xpereos.in/wp-admin/wp-feed.php
+https://xpereos.in/wp-admin/z
+https://xpereos.in/wp-content
+https://xpereos.in/wp-content/*
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/css/bootstrap-icons.css
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/css/bootstrap.min.css
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/css/font-awesome.css
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/css/image-hover.min.css
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/css/owl.carousel.min.css
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/css/shortcode-styles.css
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/css/style.css
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/cea-custom-front.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/cea-row-sticky.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/custom.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/infinite-scroll.pkgd.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/isotope.pkgd.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/jquery.appear.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/lenis.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/owl.carousel.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/parallax.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/split-type.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/theia-sticky-sidebar.min.js
+https://xpereos.in/wp-content/plugins/classic-elementor-addons-pro/assets/js/tilt.jquery.js
+https://xpereos.in/wp-content/plugins/contact-form-7/includes/css/styles.css
+https://xpereos.in/wp-content/plugins/contact-form-7/includes/js/index.js
+https://xpereos.in/wp-content/plugins/contact-form-7/includes/swv/js/index.js
+https://xpereos.in/wp-content/plugins/elementor/assets/css/frontend.min.css
+https://xpereos.in/wp-content/plugins/elementor/assets/css/widget-divider.min.css
+https://xpereos.in/wp-content/plugins/elementor/assets/css/widget-heading.min.css
+https://xpereos.in/wp-content/plugins/elementor/assets/css/widget-image-box.min.css
+https://xpereos.in/wp-content/plugins/elementor/assets/css/widget-image.min.css
+https://xpereos.in/wp-content/plugins/elementor/assets/js/frontend.min.js
+https://xpereos.in/wp-content/plugins/elementor/assets/js/frontend-modules.min.js
+https://xpereos.in/wp-content/plugins/elementor/assets/js/webpack.runtime.min.js
+https://xpereos.in/wp-content/plugins/elementor/assets/lib/animations/styles/fadeInUp.min.css
+https://xpereos.in/wp-content/plugins/elementor/assets/lib/font-awesome/css/font-awesome.min.css
+https://xpereos.in/wp-content/plugins/elementor-pro/assets/js/elements-handlers.min.js
+https://xpereos.in/wp-content/plugins/elementor-pro/assets/js/frontend.min.js
+https://xpereos.in/wp-content/plugins/elementor-pro/assets/js/webpack-pro.runtime.min.js
+https://xpereos.in/wp-content/plugins/hostinger-reach/frontend/dist/blocks/subscription.css
+https://xpereos.in/wp-content/plugins/hostinger-reach/frontend/dist/blocks/subscription-view.js
+https://xpereos.in/wp-content/plugins/lockhive-addon/admin/extension/mega-menu/js/megamenu-post.js
+https://xpereos.in/wp-content/plugins/wp-smush-pro/app/assets/js/smush-detector.min.js
+https://xpereos.in/wp-content/plugins/zozo-header-footer/admin/assets/css/zhf-meta-box.css
+https://xpereos.in/wp-content/plugins/zozo-header-footer/admin/target-rule/select2.css
+https://xpereos.in/wp-content/plugins/zozo-header-footer/admin/target-rule/select2.js
+https://xpereos.in/wp-content/plugins/zozo-header-footer/admin/target-rule/target-rule.css
+https://xpereos.in/wp-content/plugins/zozo-header-footer/admin/target-rule/target-rule.js
+https://xpereos.in/wp-content/plugins/zozo-header-footer/admin/target-rule/user-role.js
+https://xpereos.in/wp-content/plugins/zozo-header-footer/assets/css/themify-icons.css
+https://xpereos.in/wp-content/themes/lockhive/
+https://xpereos.in/wp-content/themes/lockhive/assets/css/theme.min.css
+https://xpereos.in/wp-content/themes/lockhive/assets/css/theme-styles.css
+https://xpereos.in/wp-content/themes/lockhive/assets/js/theme.js
+https://xpereos.in/wp-content/themes/lockhive/style.css
+https://xpereos.in/wp-content/uploads/2025/09/about-us-2.webp
+https://xpereos.in/wp-content/uploads/2025/09/about-us-2.webp%20995w,%20https:/xpereos.in/wp-content/
+https://xpereos.in/wp-content/uploads/2025/09/about-us-2.webp%20995w,%20https:/xpereos.in/wp-content/uploads/
+https://xpereos.in/wp-content/uploads/2025/09/about-us-2.webp%20995w,%20https:/xpereos.in/wp-content/uploads/2025/09/
+https://xpereos.in/wp-content/uploads/2025/09/about-us-2.webp%20995w,%20https:/xpereos.in/wp-content/uploads/2025/09/about-us-2-600x1296.webp%20600w
+https://xpereos.in/wp-content/uploads/2025/09/blog-3.webp
+https://xpereos.in/wp-content/uploads/2025/09/fingerprint-1.webp
+https://xpereos.in/wp-content/uploads/2025/09/fingerprint-1.webp%20128w,%20https:/xpereos.in/wp-content/uploads/
+https://xpereos.in/wp-content/uploads/2025/09/network-monitoring.webp
+https://xpereos.in/wp-content/uploads/2025/09/network-monitoring.webp%20128w,%20https:/xpereos.in/wp-content/uploads/2025/09/
+https://xpereos.in/wp-content/uploads/2025/09/privacy-protection.webp
+https://xpereos.in/wp-content/uploads/2025/09/privacy-protection.webp%20128w,%20https:/
+https://xpereos.in/wp-content/uploads/2025/09/privacy-protection.webp%20128w,%20https:/xpereos.in/wp-content/
+https://xpereos.in/wp-content/uploads/2025/09/privacy-protection.webp%20128w,%20https:/xpereos.in/wp-content/uploads/
+https://xpereos.in/wp-content/uploads/2025/09/privacy-protection.webp%20128w,%20https:/xpereos.in/wp-content/uploads/2025/09/
+https://xpereos.in/wp-content/uploads/2025/09/privacy-protection.webp%20128w,%20https:/xpereos.in/wp-content/uploads/2025/09/privacy-protection-100x100.webp%20100w
+https://xpereos.in/wp-content/uploads/2025/09/secure-server.webp
+https://xpereos.in/wp-content/uploads/2025/09/secure-server.webp%20128w,%20https:/xpereos.in/wp-content/uploads/2025/09/secure-server-100x100.webp%20100w
+https://xpereos.in/wp-content/uploads/2025/09/service-2.webp
+https://xpereos.in/wp-content/uploads/2025/09/service-2.webp%201280w,%20https:/xpereos.in/wp-content/uploads/
+https://xpereos.in/wp-content/uploads/2025/09/service-6.webp
+https://xpereos.in/wp-content/uploads/2025/09/service-6.webp%201280w,%20https:/xpereos.in/wp-content/uploads/
+https://xpereos.in/wp-content/uploads/2025/09/service-6.webp%201280w,%20https:/xpereos.in/wp-content/uploads/2025/09/
+https://xpereos.in/wp-content/uploads/2025/09/shape-31.webp
+https://xpereos.in/wp-content/uploads/2025/09/shape-32.webp
+https://xpereos.in/wp-content/uploads/2025/09/shape-32.webp%20600w,%20https:/xpereos.in/wp-content/uploads/
+https://xpereos.in/wp-content/uploads/2025/09/shape-32.webp%20600w,%20https:/xpereos.in/wp-content/uploads/2025/09/shape-32-300x300.webp%20300w,%20https:/xpereos.in/wp-content/
+https://xpereos.in/wp-content/uploads/2025/09/shape-32.webp%20600w,%20https:/xpereos.in/wp-content/uploads/2025/09/shape-32-300x300.webp%20300w,%20https:/xpereos.in/wp-content/uploads/2025/09/
+https://xpereos.in/wp-content/uploads/2025/10/cybersecurity-loader.gif
+https://xpereos.in/wp-content/uploads/2025/12/1-1.svg
+https://xpereos.in/wp-content/uploads/2025/12/Header-logo.svg
+https://xpereos.in/wp-content/uploads/elementor/css/post-2953.css
+https://xpereos.in/wp-content/uploads/elementor/css/post-6.css
+https://xpereos.in/wp-includes
+https://xpereos.in/wp-includes/css/dist/block-library/style.min.css
+https://xpereos.in/wp-includes/js/dist/hooks.min.js
+https://xpereos.in/wp-includes/js/dist/i18n.min.js
+https://xpereos.in/wp-includes/js/imagesloaded.min.js
+https://xpereos.in/wp-includes/js/jquery/jquery-migrate.min.js
+https://xpereos.in/wp-includes/js/jquery/jquery.min.js
+https://xpereos.in/wp-includes/js/jquery/ui/core.min.js
+https://xpereos.in/wp-json
+https://xpereos.in/wp-json/hostinger-reach/
+https://xpereos.in/wp-json/hostinger-reach/v1/contact
+https://xpereos.in/wp-json/oembed/
+https://xpereos.in/wp-json/wp/v2/pages/
+https://xpereos.in/xmlrpc.php
+https://xpereos.in/xpereos.in/
+https://xpereos.in/xpereos.in/wp-content/
+https://xpereos.in/xpereos.in/wp-content/plugins/revslider/public/css/sr7.css
+https://xpereos.in/xpereos.in/wp-content/plugins/revslider/public/js/
+https://xpereos.in/z
+        "ico",
+    insecure: false,
+        "jfif",
+        "jpeg",
+        "jpg",
+    json: false,
+    kind: "configuration",
+    limit_bars: 0,
+        "m4a",
+        "m4p",
+        "m4v",
+            Matcher,
+    methods: [
+        "mov",
+        "mp3",
+        "mp4",
+        "mpeg",
+        "mpg",
+    no_recursion: false,
+        "oga",
+        "ogg",
+        "ogv",
+        ".old",
+        "otf",
+    output_level: Silent,
+    output: "results/xpereos.in_2025-12-17_07-23-02/content/vapt_xpereos.in_feroxbuster.txt",
+    parallel: 0,
+            password: None,
+            path: "/",
+        "php",
+        "pjp",
+        "pjpeg",
+        "png",
+            port: None,
+    protocol: "https",
+        proxies: [
+    proxy: "",
+    queries: [],
+            query: None,
+    quiet: false,
+    random_agent: false,
+    rate_limit: 0,
+        redirect_policy: "Policy(None)",
+    redirects: false,
+        referer: true,
+    regex_denylist: [],
+    replay_client: None,
+    replay_codes: [
+    replay_proxy: "",
+    requester_policy: AutoTune,
+    request_file: "",
+        reqwest::config::RequestTimeout: 7s,
+    response_size_limit: 4194304,
+    resumed: false,
+    resume_from: "",
+    save_state: false,
+    scan_dir_listings: false,
+    scan_limit: 2,
+            scheme: "https",
+    scope: [
+    server_certs: [],
+    silent: true,
+    status_codes: [
+    stdin: false,
+        "svg",
+    target_url: "https://xpereos.in/",
+        "tgz",
+    threads: 50,
+        "tif",
+        "tiff",
+    time_limit: "10m",
+    timeout: 7,
+        "ttf",
+        "txt",
+    unique: false,
+    update_app: false,
+        Url {
+    url_denylist: [],
+            "user-agent": "feroxbuster/2.13.1",
+    user_agent: "feroxbuster/2.13.1",
+            username: "",
+    verbosity: 0,
+        "wav",
+        "webm",
+        "webp",
+        "woff",
+        "woff2",
+    wordlist: "tools/wordlists/raft-medium-directories.txt",
+        "xls",
+        "xml",
+                    "xpereos.in",
+        "zip",

@@ -58,6 +58,23 @@ check_api_keys() {
 }
 
 check_api_keys
+ 
+# Check OpenRouter API Connectivity if key is present
+if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "your_openrouter_api_key_here" ]; then
+    echo -e "[-] Verifying OpenRouter API Access for model: ${BLUE}${OPENROUTER_MODEL}${NC}"
+    if [ -f "$SEC_AI_PATH" ]; then
+        python3 "$SEC_AI_PATH" check
+        AI_CHECK_STATUS=$?
+        if [ $AI_CHECK_STATUS -ne 0 ]; then
+             echo -e "${RED}[!] AI Connectivity Check Failed. AI features will be disabled for this session.${NC}"
+             OPENROUTER_API_KEY=""
+        else
+             echo -e "${GREEN}[+] AI Model Connected Successfully.${NC}"
+        fi
+    else
+        echo -e "${RED}[!] sec_ai module not found at $SEC_AI_PATH${NC}"
+    fi
+fi
 
 # Check if target domain is provided
 if [ $# -eq 0 ]; then
@@ -151,24 +168,38 @@ execute_module "Gathering Network Info" "network_info.sh" "${RESULTS_DIR}/networ
 execute_module "Querying DNS Records" "dns_info.sh" "${RESULTS_DIR}/dns"
 execute_module "Detecting Firewalls" "firewall_detection.sh" "${RESULTS_DIR}/firewall"
 
-print_banner "Deep Discovery Phase"
+print_banner "Deep Discovery Phase (V3 Enterprise)"
+execute_module "Historical Recon (GAU/Wayback)" "historical_scan.sh" "${RESULTS_DIR}/urls"
 execute_module "Advanced Recon (Uncover)" "uncover_recon.sh" "${RESULTS_DIR}/uncover"
 execute_module "Fuzzing Content (Feroxbuster)" "content_discovery.sh" "${RESULTS_DIR}/content"
 execute_module "Spidering & Parameter Mining (Gospider)" "spidering.sh" "${RESULTS_DIR}/spidering"
 
-print_banner "Vulnerability Scanning Phase"
+# Combine all URL sources for advanced scanning
+cat "${RESULTS_DIR}/urls/"*.txt "${RESULTS_DIR}/spidering/"*.txt "${RESULTS_DIR}/content/"*.txt 2>/dev/null | sort -u > "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
+
+print_banner "Active Vulnerability Phase"
+execute_module "Secrets Scanning (TruffleHog)" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
+execute_module "Advanced Fuzzing & Exploitation (FFUF/Dalfox/SQLMap)" "fuzzing.sh" "${RESULTS_DIR}/fuzzing" "tools/wordlists/raft-medium-directories.txt" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
 execute_module "Running Nuclei Scans" "nuclei_scan.sh" "${RESULTS_DIR}/nuclei"
+
 execute_module "Specifying WordPress Issues" "wordpress_scan.sh" "${RESULTS_DIR}/wordpress"
 execute_module "Capturing Evidence" "screenshots.sh" "${RESULTS_DIR}/screenshots"
 
 print_banner "Reporting Phase"
 run_with_spinner "Building Context" python3 utils/context_builder.py "${TARGET}" "${RESULTS_DIR}"
 
-if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "your_openrouter_api_key_here" ]; then
-    run_with_spinner "AI Architectural Analysis" python3 utils/analyze_architecture.py "${TARGET}" "${RESULTS_DIR}" "${OPENROUTER_API_KEY}"
-    run_with_spinner "Generating Final Report" python3 utils/report_generator.py "${TARGET}" "${RESULTS_DIR}" "${OPENROUTER_API_KEY}"
+if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "your_openrouter_api_key_here" ] && [ "$AI_CHECK_STATUS" -eq 0 ]; then
+    echo -e "${BLUE}[*] Starting AI Analysis (Red Team Persona)...${NC}"
+    
+    # Define output report path
+    FINAL_REPORT="${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md"
+    
+    # Execute AI Analysis
+    run_with_spinner "AI Vulnerability Analysis" python3 "$SEC_AI_PATH" analyze --input "${RESULTS_DIR}" --output "${FINAL_REPORT}"
+    
+    echo -e "${GREEN}[+] AI Report Generated: ${FINAL_REPORT}${NC}"
 else
-    echo -e "${YELLOW}Skipping AI Analysis (No API Key provided).${NC}"
+    echo -e "${YELLOW}Skipping AI Analysis (No API Key or Check Failed).${NC}"
     echo "Basic report structure available in ${RESULTS_DIR}/context/"
 fi
 

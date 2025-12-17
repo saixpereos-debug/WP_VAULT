@@ -1,0 +1,32 @@
+=== wafw00f ===
+ERROR:wafw00f:Something went wrong HTTPSConnectionPool(host='xpereos.in', port=443): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7f1861a5c1d0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+
+                [1;97m______
+               [1;97m/      \
+              [1;97m(  W00f! )
+               [1;97m\  ____/
+               [1;97m,,    [1;92m__            [1;93m404 Hack Not Found
+           [1;96m|`-.__   [1;92m/ /                     [1;91m __     __
+           [1;96m/"  _/  [1;92m/_/                       [1;91m\ \   / /
+          [1;94m*===*    [1;92m/                          [1;91m\ \_/ /  [1;93m405 Not Allowed
+         [1;96m/     )__//                           [1;91m\   /
+    [1;96m/|  /     /---`                        [1;93m403 Forbidden
+    [1;96m\\/`   \ |                                 [1;91m/ _ \
+    [1;96m`\    /_\\_              [1;93m502 Bad Gateway  [1;91m/ / \ \  [1;93m500 Internal Error
+      [1;96m`_____``-`                             [1;91m/_/   \_\
+
+                        [1;96m~ WAFW00F : [1;94mv2.2.0 ~[1;97m
+        The Web Application Firewall Fingerprinting Toolkit
+    [0m
+[*] Checking https://xpereos.in
+[+] Generic Detection results:
+[*] The site https://xpereos.in seems to be behind a WAF or some sort of security solution
+[~] Reason: Blocking is being done at connection/packet level.
+[~] Number of requests: 2
+
+=== Additional Checks ===
+Cloudflare not detected
+Sucuri not detected
+
+=== Passive WAF Detection (Nuclei) ===
+[[92mwaf-detect[0m:[1;92mnginxgeneric[0m] [[94mhttp[0m] [[34minfo[0m] https://xpereos.in/

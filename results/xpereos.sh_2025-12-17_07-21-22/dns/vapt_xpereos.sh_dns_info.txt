@@ -1,0 +1,33 @@
+=== nslookup ===
+Server:		192.168.122.1
+Address:	192.168.122.1#53
+
+** server can't find xpereos.sh: NXDOMAIN
+
+
+=== dig ===
+
+; <<>> DiG 9.18.41-1~deb12u1-Debian <<>> xpereos.sh ANY
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 62311
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;xpereos.sh.			IN	ANY
+
+;; AUTHORITY SECTION:
+sh.			582	IN	SOA	a0.nic.sh. hostmaster.donuts.email. 1765973843 7200 900 1209600 3600
+
+;; Query time: 6 msec
+;; SERVER: 192.168.122.1#53(192.168.122.1) (TCP)
+;; WHEN: Wed Dec 17 07:22:35 EST 2025
+;; MSG SIZE  rcvd: 109
+
+
+=== host ===
+Host xpereos.sh not found: 3(NXDOMAIN)
+
+=== DNS Zone Transfer Attempt ===

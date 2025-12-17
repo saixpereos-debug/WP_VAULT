@@ -1,0 +1,9 @@
+hffhhhfggfgfgf.xpereos.in
+mail.xpereos.in
+media.xpereos.in
+new.xpereos.in
+smtp.xpereos.in
+squad.xpereos.in
+www.xpereos.in
+*.xpereos.in
+xpereos.in

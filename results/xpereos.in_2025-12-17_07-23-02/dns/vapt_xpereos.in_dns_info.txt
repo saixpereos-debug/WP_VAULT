@@ -1,0 +1,57 @@
+=== nslookup ===
+Server:		192.168.122.1
+Address:	192.168.122.1#53
+
+Non-authoritative answer:
+Name:	xpereos.in
+Address: 147.79.69.224
+Name:	xpereos.in
+Address: 88.222.243.193
+Name:	xpereos.in
+Address: 2a02:4780:1f:7681:d2eb:2b52:b906:2269
+Name:	xpereos.in
+Address: 2a02:4780:20:96b1:f2cb:5157:5be5:8419
+
+
+=== dig ===
+
+; <<>> DiG 9.18.41-1~deb12u1-Debian <<>> xpereos.in ANY
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 36396
+;; flags: qr rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;xpereos.in.			IN	ANY
+
+;; ANSWER SECTION:
+xpereos.in.		270	IN	AAAA	2a02:4780:20:96b1:f2cb:5157:5be5:8419
+xpereos.in.		270	IN	AAAA	2a02:4780:1f:7681:d2eb:2b52:b906:2269
+xpereos.in.		287	IN	A	147.79.69.224
+xpereos.in.		287	IN	A	88.222.243.193
+
+;; Query time: 136 msec
+;; SERVER: 192.168.122.1#53(192.168.122.1) (TCP)
+;; WHEN: Wed Dec 17 07:24:36 EST 2025
+;; MSG SIZE  rcvd: 127
+
+
+=== host ===
+xpereos.in has address 88.222.243.193
+xpereos.in has address 147.79.69.224
+xpereos.in has IPv6 address 2a02:4780:20:96b1:f2cb:5157:5be5:8419
+xpereos.in has IPv6 address 2a02:4780:1f:7681:d2eb:2b52:b906:2269
+xpereos.in mail is handled by 10 mx2.hostinger.com.
+xpereos.in mail is handled by 5 mx1.hostinger.com.
+
+=== DNS Zone Transfer Attempt ===
+
+; <<>> DiG 9.18.41-1~deb12u1-Debian <<>> axfr xpereos.in @ns1.dns-parking.com.
+;; global options: +cmd
+; Transfer failed.
+
+; <<>> DiG 9.18.41-1~deb12u1-Debian <<>> axfr xpereos.in @ns2.dns-parking.com.
+;; global options: +cmd
+; Transfer failed.
