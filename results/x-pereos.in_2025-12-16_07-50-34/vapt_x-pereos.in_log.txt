@@ -1,0 +1,202 @@
+Enhanced WordPress VAPT for x-pereos.in started at 2025-12-16_07-50-34
+Executing Subdomain Enumeration...
+tee: '': No such file or directory
+Running subfinder...
+modules/subdomain_enum.sh: line 20: -d: command not found
+tee: '': No such file or directory
+Running amass...
+modules/subdomain_enum.sh: line 20: -d: command not found
+tee: '': No such file or directory
+Running crt.sh...
+Found 0 unique subdomains
+Subdomain Enumeration completed successfully
+Executing URL Discovery...
+tee: '': No such file or directory
+Crawling x-pereos.in with Katana...
+tee: '': No such file or directory
+Crawling x-pereos.in with HackCrawler...
+cat: results/x-pereos.in_2025-12-16_07-50-34/urls/vapt_x-pereos.in_urls_x-pereos.in.txt: No such file or directory
+cat: results/x-pereos.in_2025-12-16_07-50-34/urls/vapt_x-pereos.in_urls_x-pereos.in.txt.hackcrawler: No such file or directory
+rm: cannot remove 'results/x-pereos.in_2025-12-16_07-50-34/urls/vapt_x-pereos.in_urls_x-pereos.in.txt.hackcrawler': No such file or directory
+modules/url_discovery.sh: line 36: /subdomains/vapt_x-pereos.in_subdomains_all.txt: No such file or directory
+Found 0 unique URLs
+URL Discovery completed successfully
+Executing HTTPx Analysis...
+tee: '': No such file or directory
+Running HTTPx analysis for x-pereos.in...
+cat: /urls/vapt_x-pereos.in_urls_all.txt: No such file or directory
+tee: '': No such file or directory
+Running httpx for technology detection...
+modules/httpx_analysis.sh: line 20: -l: command not found
+tee: '': No such file or directory
+Running httpx with custom matchers...
+modules/httpx_analysis.sh: line 24: -l: command not found
+tee: '': No such file or directory
+Running httpx for path probing...
+modules/httpx_analysis.sh: line 28: -l: command not found
+tee: '': No such file or directory
+Running httpx for HTTP method discovery...
+modules/httpx_analysis.sh: line 32: -l: command not found
+tee: '': No such file or directory
+Combining httpx results...
+HTTPx analysis completed
+HTTPx Analysis completed successfully
+Executing Network Information...
+tee: '': No such file or directory
+Gathering network information for x-pereos.in...
+IP Address:
+
+Whois Information:
+>>> Domain x-pereos.in is available for registration
+
+>>> Please visit https://rdap.nixiregistry.in/registrars/ for a list of
+accredited registrars
+
+>>> Last update of WHOIS database: 2025-12-16T12:50:43.121Z <<<
+
+For more information on domain status codes, please visit https://icann.org/epp
+
+The WHOIS information provided in this page has been redacted
+in compliance with ICANN's Temporary Specification for gTLD
+Registration Data.
+
+The data in this record is provided by Tucows Registry for informational
+purposes only, and it does not guarantee its accuracy. Tucows Registry is
+authoritative for whois information in top-level domains it operates
+under contract with the Internet Corporation for Assigned Names and
+Numbers. Whois information from other top-level domains is provided by
+a third-party under license to Tucows Registry.
+
+This service is intended only for query-based access. By using this
+service, you agree that you will use any data presented only for lawful
+purposes and that, under no circumstances will you use (a) data
+acquired for the purpose of allowing, enabling, or otherwise supporting
+the transmission by e-mail, telephone, facsimile or other
+communications mechanism of mass  unsolicited, commercial advertising
+or solicitations to entities other than your existing  customers; or
+(b) this service to enable high volume, automated, electronic processes
+that send queries or data to the systems of any Registrar or any
+Registry except as reasonably necessary to register domain names or
+modify existing domain name registrations.
+
+Tucows Registry reserves the right to modify these terms at any time. By
+submitting this query, you agree to abide by this policy. All rights
+reserved.
+
+Geolocation Information:
+{
+  "status": "success",
+  "country": "India",
+  "countryCode": "IN",
+  "region": "KA",
+  "regionName": "Karnataka",
+  "city": "Bengaluru",
+  "zip": "562130",
+  "lat": 12.9753,
+  "lon": 77.591,
+  "timezone": "Asia/Kolkata",
+  "isp": "Atria Convergence Technologies Ltd.",
+  "org": "Beam Telecom Pvt Ltd",
+  "as": "AS24309 Atria Convergence Technologies Pvt. Ltd. Broadband Internet Service Provider INDIA",
+  "query": "49.207.148.215"
+}
+
+Basic Port Scan (top 1000):
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-12-16 07:50 EST
+Failed to resolve "x-pereos.in".
+WARNING: No targets were specified, so 0 hosts scanned.
+Nmap done: 0 IP addresses (0 hosts up) scanned in 0.03 seconds
+Network information gathering completed
+Network Information completed successfully
+Executing DNS Information...
+tee: '': No such file or directory
+Gathering DNS information for x-pereos.in...
+=== nslookup ===
+Server:		192.168.122.1
+Address:	192.168.122.1#53
+
+** server can't find x-pereos.in: NXDOMAIN
+
+
+=== dig ===
+
+; <<>> DiG 9.18.41-1~deb12u1-Debian <<>> x-pereos.in ANY
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 28281
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;x-pereos.in.			IN	ANY
+
+;; AUTHORITY SECTION:
+in.			299	IN	SOA	ns.trs-dns.com. trs-ops.tucows.com. 1765889156 1800 900 604800 300
+
+;; Query time: 3 msec
+;; SERVER: 192.168.122.1#53(192.168.122.1) (TCP)
+;; WHEN: Tue Dec 16 07:50:43 EST 2025
+;; MSG SIZE  rcvd: 110
+
+
+=== host ===
+Host x-pereos.in not found: 3(NXDOMAIN)
+
+=== DNS Zone Transfer Attempt ===
+DNS information gathering completed
+DNS Information completed successfully
+Executing Firewall Detection...
+tee: '': No such file or directory
+Detecting firewall for x-pereos.in...
+=== wafw00f ===
+modules/firewall_detection.sh: line 17: x-pereos.in: command not found
+
+=== Additional Checks ===
+Cloudflare not detected
+Sucuri not detected
+Firewall detection completed
+Firewall Detection completed successfully
+Executing Nuclei Scanning...
+tee: '': No such file or directory
+Running enhanced Nuclei scan for x-pereos.in...
+cat: /urls/vapt_x-pereos.in_urls_all.txt: No such file or directory
+tee: '': No such file or directory
+Updating Nuclei templates...
+modules/nuclei_scan.sh: line 20: -update-templates: command not found
+tee: '': No such file or directory
+Running Nuclei with custom WordPress templates...
+modules/nuclei_scan.sh: line 24: -l: command not found
+tee: '': No such file or directory
+Running Nuclei with official WordPress templates...
+modules/nuclei_scan.sh: line 28: -l: command not found
+tee: '': No such file or directory
+Running Nuclei with all templates (excluding WordPress)...
+modules/nuclei_scan.sh: line 32: -l: command not found
+tee: '': No such file or directory
+Parsing and categorizing Nuclei results...
+Nuclei scan completed with 0 total findings
+Enhanced Nuclei scanning completed
+Nuclei Scanning completed successfully
+Executing Screenshot Capture...
+tee: '': No such file or directory
+Capturing screenshots for x-pereos.in...
+cat: /urls/vapt_x-pereos.in_urls_all.txt: No such file or directory
+tee: '': No such file or directory
+Running Gowitness...
+file: Unknown param results/x-pereos.in_2025-12-16_07-50-34/screenshots
+tee: '': No such file or directory
+Creating list of captured screenshots...
+Screenshot capture completed. 0 screenshots captured.
+Screenshot Capture completed successfully
+Executing WordPress Scanning...
+tee: '': No such file or directory
+Scanning WordPress site: x-pereos.in
+modules/wordpress_scan.sh: line 18: --url: command not found
+modules/wordpress_scan.sh: line 30: /subdomains/vapt_x-pereos.in_subdomains_all.txt: No such file or directory
+cat: 'results/x-pereos.in_2025-12-16_07-50-34/wordpress/*.txt': No such file or directory
+WordPress scanning completed
+WordPress Scanning completed successfully
+Building optimized context for OpenRouter...
+Generating final report...
+Enhanced WordPress VAPT for x-pereos.in completed. Results saved in results/x-pereos.in_2025-12-16_07-50-34

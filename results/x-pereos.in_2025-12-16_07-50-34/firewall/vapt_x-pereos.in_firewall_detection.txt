@@ -1,0 +1,5 @@
+=== wafw00f ===
+
+=== Additional Checks ===
+Cloudflare not detected
+Sucuri not detected

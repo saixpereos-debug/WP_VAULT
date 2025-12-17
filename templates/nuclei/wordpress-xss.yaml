@@ -1,0 +1,34 @@
+id: wordpress-xss
+
+info:
+  name: WordPress XSS Detection
+  author: YourName
+  severity: high
+  description: Detects potential Cross-Site Scripting vulnerabilities in WordPress
+  tags: wordpress,xss,cwe-79
+
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?s=<script>alert(1)</script>"
+      - "{{BaseURL}}/?p=1&comment=<script>alert(1)</script>"
+      - "{{BaseURL}}/?search=<img src=x onerror=alert(1)>"
+    
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "<script>alert(1)</script>"
+          - "<img src=x onerror=alert(1)>"
+        condition: or
+        
+      - type: status
+        status:
+          - 200
+          
+      - type: regex
+        regex:
+          - "(?i)<script[^>]*>.*?alert\\(1\\).*?</script>"
+          - "(?i)<img[^>]*onerror[^>]*alert\\(1\\)"
+        condition: or
+

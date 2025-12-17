@@ -1,0 +1,13 @@
+VAPT Summary for x-pereos.in
+Scan Date: 2025-12-16 07:50:43
+
+Subdomains Found: 0
+URLs Discovered: 0
+Technologies Identified: 0
+
+Vulnerability Summary:
+  Critical: 0
+  High: 0
+  Medium: 0
+  Low: 0
+  Info: 0

@@ -1,0 +1,38 @@
+{
+  "nuclei": {
+    "critical": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "high": "AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "medium": "AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+    "low": "AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "info": "AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+  },
+  "wordpress": {
+    "critical": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "high": "AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "medium": "AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+    "low": "AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L",
+    "info": "AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+  },
+  "httpx_custom_matchers": {
+    "critical": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "high": "AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "medium": "AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "low": "AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N",
+    "info": "AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+  },
+  "httpx_path_probing": {
+    "critical": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "high": "AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "medium": "AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "low": "AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N",
+    "info": "AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+  },
+  "httpx_method_discovery": {
+    "critical": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+    "high": "AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N",
+    "medium": "AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+    "low": "AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "info": "AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+  }
+}
+
