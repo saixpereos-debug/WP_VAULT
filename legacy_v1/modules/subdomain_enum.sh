@@ -4,7 +4,7 @@
 
 TARGET=$1
 OUTPUT_DIR=$2
-# LOG_FILE is exported by main.sh
+LOG_FILE=$3
 
 # Ensure output directory exists
 mkdir -p "${OUTPUT_DIR}"
@@ -16,19 +16,19 @@ run_tool() {
     local tool_options=$3
     local output_file="${OUTPUT_DIR}/vapt_${TARGET}_subdomains_${tool_name}.txt"
     
-    # We suppress output here because main.sh handles logging
-    ${tool_path} -d ${TARGET} ${tool_options} > "${output_file}" 2>> "${LOG_FILE}" || true
-    # sort -u must be done on the output file
-    sort -u -o "${output_file}" "${output_file}"
+    echo "Running ${tool_name}..." | tee -a "${LOG_FILE}"
+    ${tool_path} -d ${TARGET} ${tool_options} | tee "${output_file}" | sort -u
 }
 
 # Run subdomain enumeration tools
-# Silently run tools
 run_tool "subfinder" "${SUBFINDER_PATH}" "${SUBFINDER_OPTIONS}"
 run_tool "amass" "${AMASS_PATH}" "${AMASS_OPTIONS}"
 
 # Additional method: crt.sh
-curl -s "https://crt.sh/?q=%.${TARGET}&output=json" | jq -r '.[].name_value' 2>/dev/null | sort -u > "${OUTPUT_DIR}/vapt_${TARGET}_subdomains_crtsh.txt"
+echo "Running crt.sh..." | tee -a "${LOG_FILE}"
+curl -s "https://crt.sh/?q=%.${TARGET}&output=json" | jq -r '.[].name_value' | sort -u > "${OUTPUT_DIR}/vapt_${TARGET}_subdomains_crtsh.txt"
 
 # Combine all results and remove duplicates
 cat "${OUTPUT_DIR}"/*.txt | sort -u > "${OUTPUT_DIR}/vapt_${TARGET}_subdomains_all.txt"
+
+echo "Found $(cat "${OUTPUT_DIR}/vapt_${TARGET}_subdomains_all.txt" | wc -l) unique subdomains"

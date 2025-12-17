@@ -5,30 +5,19 @@
 TARGET=$1
 OUTPUT_DIR=$2
 
-# Ensure output directory exists
 mkdir -p "${OUTPUT_DIR}"
-
 OUTPUT_FILE="${OUTPUT_DIR}/vapt_${TARGET}_dns_info.txt"
 
-echo "Gathering DNS information for ${TARGET}..." | tee -a "${LOG_FILE}"
+echo "=== nslookup ===" > "${OUTPUT_FILE}"
+nslookup ${TARGET} >> "${OUTPUT_FILE}" 2>/dev/null
 
-# Using nslookup
-echo "=== nslookup ===" | tee -a "${OUTPUT_FILE}"
-nslookup ${TARGET} | tee -a "${OUTPUT_FILE}"
+echo -e "\n=== dig ===" >> "${OUTPUT_FILE}"
+dig ${TARGET} ANY >> "${OUTPUT_FILE}" 2>/dev/null
 
-# Using dig
-echo -e "\n=== dig ===" | tee -a "${OUTPUT_FILE}"
-dig ${TARGET} ANY | tee -a "${OUTPUT_FILE}"
+echo -e "\n=== host ===" >> "${OUTPUT_FILE}"
+host ${TARGET} >> "${OUTPUT_FILE}" 2>/dev/null
 
-# Using host
-echo -e "\n=== host ===" | tee -a "${OUTPUT_FILE}"
-host ${TARGET} | tee -a "${OUTPUT_FILE}"
-
-# DNS zone transfer attempt
-echo -e "\n=== DNS Zone Transfer Attempt ===" | tee -a "${OUTPUT_FILE}"
+echo -e "\n=== DNS Zone Transfer Attempt ===" >> "${OUTPUT_FILE}"
 for ns in $(dig ${TARGET} NS +short); do
-    echo "Attempting zone transfer with ${ns}..." | tee -a "${OUTPUT_FILE}"
-    dig axfr ${TARGET} @${ns} | tee -a "${OUTPUT_FILE}"
+    dig axfr ${TARGET} @${ns} >> "${OUTPUT_FILE}" 2>/dev/null
 done
-
-echo "DNS information gathering completed"

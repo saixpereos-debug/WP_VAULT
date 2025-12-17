@@ -31,3 +31,4 @@ requests:
           - "(?i)<script[^>]*>.*?alert\\(1\\).*?</script>"
           - "(?i)<img[^>]*onerror[^>]*alert\\(1\\)"
         condition: or
+

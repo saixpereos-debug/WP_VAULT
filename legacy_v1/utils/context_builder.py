@@ -44,9 +44,6 @@ def build_context(target, results_dir):
     # Process firewall detection
     process_firewall_info(context, results_dir)
     
-    # Process Uncover results
-    process_uncover_results(context, results_dir)
-    
     # Process Nuclei results
     process_nuclei_results(context, results_dir)
     
@@ -114,24 +111,9 @@ def process_httpx(context, results_dir):
     with open(httpx_file, 'r') as f:
         httpx_data = json.load(f)
     
-    technologies = set()
-
-    # Process WhatWeb results
-    whatweb_file = os.path.join(results_dir, "httpx", f"vapt_{context['target']}_whatweb.json")
-    if os.path.exists(whatweb_file):
-        try:
-            with open(whatweb_file, 'r') as f:
-                whatweb_data = json.load(f)
-                if isinstance(whatweb_data, list):
-                    for item in whatweb_data:
-                        plugins = item.get('plugins', {})
-                        for plugin_name in plugins.keys():
-                            technologies.add(plugin_name)
-        except Exception as e:
-            pass
-
     # Process technology detection
     tech_items = httpx_data.get('tech_detection', [])
+    technologies = set()
     
     for item in tech_items:
         tech_list = item.get('tech', [])
@@ -186,34 +168,16 @@ def process_network_info(context, results_dir):
             "ip_address": ip_match.group(1)
         }
     
-    # Extract open ports (Nmap style)
+    # Extract open ports
     ports_match = re.search(r'Basic Port Scan.*?\n(.*?)\n\n', network_info, re.DOTALL)
-    if 'network_info' not in context:
-        context['network_info'] = {}
-
-    ports_list = []
-    
-    # Check Nmap
     if ports_match:
         ports_text = ports_match.group(1)
-        open_ports_nmap = re.findall(r'(\d+)/tcp\s+open\s+(\w+)', ports_text)
-        for port, service in open_ports_nmap:
-            ports_list.append({"port": port, "service": service})
-            
-    # Check Naabu
-    # Format: host:port, e.g. example.com:80 or 1.2.3.4:443
-    # We look for the "Port Scan (Naabu):" section
-    naabu_match = re.search(r'Port Scan \(Naabu\):.*?\n(.*?)$', network_info, re.DOTALL)
-    if naabu_match:
-        naabu_text = naabu_match.group(1)
-        naabu_ports = re.findall(r':(\d+)', naabu_text)
-        for port in naabu_ports:
-            # Avoid duplicates if nmap found it
-            if not any(p['port'] == port for p in ports_list):
-                 ports_list.append({"port": port, "service": "unknown"})
-
-    if ports_list:
-        context['network_info']['open_ports'] = ports_list
+        open_ports = re.findall(r'(\d+)/tcp\s+open\s+(\w+)', ports_text)
+        
+        if 'network_info' not in context:
+            context['network_info'] = {}
+        
+        context['network_info']['open_ports'] = [{"port": port, "service": service} for port, service in open_ports]
 
 def process_dns_info(context, results_dir):
     """Process DNS information"""
@@ -275,22 +239,6 @@ def process_firewall_info(context, results_dir):
             context['firewall_info'] = {}
         
         context['firewall_info']['cloudflare'] = cloudflare_match.group(1) == "detected"
-
-def process_uncover_results(context, results_dir):
-    """Process Uncover reconnaissance results"""
-    uncover_file = os.path.join(results_dir, "uncover", f"vapt_{context['target']}_uncover.txt")
-    
-    if not os.path.exists(uncover_file):
-        return
-        
-    with open(uncover_file, 'r') as f:
-        assets = [line.strip() for line in f if line.strip()]
-        
-    if assets:
-        if 'recon_info' not in context:
-            context['recon_info'] = {}
-        context['recon_info']['exposed_assets_count'] = len(assets)
-        context['recon_info']['exposed_assets'] = assets[:20]
 
 def process_nuclei_results(context, results_dir):
     """Process Nuclei scan results"""

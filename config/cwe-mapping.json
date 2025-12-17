@@ -1,24 +1,24 @@
 {
-  "nuclei": {
-    "xss": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-    "sqli": "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
-    "csrf": "CWE-352: Cross-Site Request Forgery (CSRF)",
-    "lfi": "CWE-22: Path Traversal",
-    "rfi": "CWE-94: Improper Control of Generation of Code ('Code Injection')",
-    "rce": "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
-    "ssrf": "CWE-918: Server-Side Request Forgery (SSRF)",
-    "default": "CWE-16: Configuration"
-  },
-  "wordpress": {
-    "default": "CWE-16: Configuration"
-  },
-  "httpx_custom_matchers": {
-    "default": "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
-  },
-  "httpx_path_probing": {
-    "default": "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
-  },
-  "httpx_method_discovery": {
-    "default": "CWE-749: Exposed Dangerous Method or Function"
-  }
+    "nuclei": {
+        "xss": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+        "sqli": "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+        "csrf": "CWE-352: Cross-Site Request Forgery (CSRF)",
+        "lfi": "CWE-22: Path Traversal",
+        "rfi": "CWE-94: Improper Control of Generation of Code ('Code Injection')",
+        "rce": "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+        "ssrf": "CWE-918: Server-Side Request Forgery (SSRF)",
+        "default": "CWE-16: Configuration"
+    },
+    "wordpress": {
+        "default": "CWE-16: Configuration"
+    },
+    "httpx_custom_matchers": {
+        "default": "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
+    },
+    "httpx_path_probing": {
+        "default": "CWE-200: Exposure of Sensitive Information to an Unauthorized Actor"
+    },
+    "httpx_method_discovery": {
+        "default": "CWE-749: Exposed Dangerous Method or Function"
+    }
 }

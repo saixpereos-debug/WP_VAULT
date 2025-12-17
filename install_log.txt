@@ -1,0 +1,5 @@
+Vṛthā Installer Log - Wed Dec 17 05:54:34 AM EST 2025
+
+[1;33m[+] Updating system package lists...[0m
+[1;33m[+] Installing base dependencies (git, curl, wget, jq, ruby, gcc, python3)...[0m
+E: Unable to correct problems, you have held broken packages.

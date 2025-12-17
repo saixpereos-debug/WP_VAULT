@@ -6,21 +6,43 @@ TARGET=$1
 OUTPUT_DIR=$2
 URLS_FILE="${RESULTS_DIR}/urls/vapt_${TARGET}_urls_all.txt"
 
-# Ensure output directory exists
 mkdir -p "${OUTPUT_DIR}"
 
-echo "Capturing screenshots for ${TARGET}..." | tee -a "${LOG_FILE}"
-
-# Prepare list of URLs for Gowitness
 URL_LIST="${OUTPUT_DIR}/urls_to_screenshot.txt"
-cat "${URLS_FILE}" | head -n 50 > "${URL_LIST}"  # Limit to first 50 URLs
+if [ -f "${URLS_FILE}" ]; then
+    cat "${URLS_FILE}" | head -n 50 > "${URL_LIST}"
+else
+    echo "https://${TARGET}" > "${URL_LIST}"
+fi
 
-# Run Gowitness
-echo "Running Gowitness..." | tee -a "${LOG_FILE}"
- ${GOWITNESS_PATH} file -f "${URL_LIST}" -P "${OUTPUT_DIR}" ${GOWITNESS_OPTIONS}
+if [ ! -s "${URL_LIST}" ]; then
+    echo "No URLs to screenshot." >> "${LOG_FILE}"
+    exit 0
+fi
 
-# Create a list of captured screenshots
-echo "Creating list of captured screenshots..." | tee -a "${LOG_FILE}"
+echo "Taking screenshots of $(wc -l < "${URL_LIST}") URLs..." >> "${LOG_FILE}"
+
+# GOWITNESS might use 'scan file' or just 'file' depending on version. 
+# We try 'scan file' first (modern), if it fails, fallback to 'file' logic or assume it worked.
+# We redirect output to log file to detect errors.
+
+# GOWITNESS v3+ syntax
+# --write-db-uri needs sqlite:// prefix for sqlite
+# --screenshot-path is correct
+
+# Ensure output dir exists
+mkdir -p "${OUTPUT_DIR}"
+
+${GOWITNESS_PATH} scan file -f "${URL_LIST}" \
+    --write-db-uri="sqlite://${OUTPUT_DIR}/gowitness.sqlite3" \
+    --screenshot-path="${OUTPUT_DIR}" \
+    ${GOWITNESS_OPTIONS} >> "${LOG_FILE}" 2>&1
+
+# Check if successful
+if [ $? -eq 0 ]; then
+     echo "Gowitness completed." >> "${LOG_FILE}"
+else
+     echo "Gowitness failed. check log." >> "${LOG_FILE}"
+fi
+
 find "${OUTPUT_DIR}" -name "*.png" -type f > "${OUTPUT_DIR}/vapt_${TARGET}_screenshots_list.txt"
-
-echo "Screenshot capture completed. $(cat "${OUTPUT_DIR}/vapt_${TARGET}_screenshots_list.txt" | wc -l) screenshots captured."
