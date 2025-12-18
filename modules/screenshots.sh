@@ -20,29 +20,37 @@ if [ ! -s "${URL_LIST}" ]; then
     exit 0
 fi
 
-echo "Taking screenshots of $(wc -l < "${URL_LIST}") URLs..." >> "${LOG_FILE}"
+# Check if gowitness is available
+if [ ! -x "${GOWITNESS_PATH}" ]; then
+    echo "Gowitness not found at ${GOWITNESS_PATH}. Skipping screenshots." >> "${LOG_FILE}"
+    exit 1
+fi
 
-# GOWITNESS might use 'scan file' or just 'file' depending on version. 
-# We try 'scan file' first (modern), if it fails, fallback to 'file' logic or assume it worked.
-# We redirect output to log file to detect errors.
+URL_COUNT=$(wc -l < "${URL_LIST}")
+echo "Taking screenshots of ${URL_COUNT} URLs..." >> "${LOG_FILE}"
 
-# GOWITNESS v3+ syntax
-# --write-db-uri needs sqlite:// prefix for sqlite
-# --screenshot-path is correct
+# GOWITNESS v3+ syntax - FIXED
+# The correct syntax is: gowitness file <filename>
+# NOT: gowitness scan file -f <filename>
+# Create screenshots subdirectory
+mkdir -p "${OUTPUT_DIR}/screenshots"
 
-# Ensure output dir exists
-mkdir -p "${OUTPUT_DIR}"
-
-${GOWITNESS_PATH} scan file -f "${URL_LIST}" \
+# Run gowitness with correct syntax
+${GOWITNESS_PATH} file "${URL_LIST}" \
     --write-db-uri="sqlite://${OUTPUT_DIR}/gowitness.sqlite3" \
-    --screenshot-path="${OUTPUT_DIR}" \
+    --screenshot-path="${OUTPUT_DIR}/screenshots" \
     ${GOWITNESS_OPTIONS} >> "${LOG_FILE}" 2>&1
 
 # Check if successful
 if [ $? -eq 0 ]; then
-     echo "Gowitness completed." >> "${LOG_FILE}"
+     echo "  Gowitness completed successfully." >> "${LOG_FILE}"
 else
-     echo "Gowitness failed. check log." >> "${LOG_FILE}"
+     echo "  Gowitness failed. Check log for details." >> "${LOG_FILE}"
 fi
 
-find "${OUTPUT_DIR}" -name "*.png" -type f > "${OUTPUT_DIR}/vapt_${TARGET}_screenshots_list.txt"
+# List all captured screenshots
+find "${OUTPUT_DIR}/screenshots" -name "*.png" -type f > "${OUTPUT_DIR}/vapt_${TARGET}_screenshots_list.txt" 2>/dev/null
+
+SCREENSHOT_COUNT=$(wc -l < "${OUTPUT_DIR}/vapt_${TARGET}_screenshots_list.txt" 2>/dev/null || echo "0")
+echo "  Screenshots captured: ${SCREENSHOT_COUNT}" >> "${LOG_FILE}"
+echo "SCREENSHOTS_CAPTURED=${SCREENSHOT_COUNT}"

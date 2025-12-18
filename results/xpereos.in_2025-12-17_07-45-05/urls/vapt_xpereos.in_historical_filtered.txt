@@ -1,8 +1,0 @@
-https://smtp.xpereos.in/
-https://www.xpereos.in/css/1.css?ts=1591303796
-https://www.xpereos.in/css/common.css?ts=1591303796
-https://www.xpereos.in/css/site.css?v=20190120113454
-https://xpereos.in/css/font-awesome/font-awesome.min.css?v=4.7.0
-https://xpereos.in/js/main.js?v=20190120113454
-http://xpereos.in/
-http://xpereos.in/robots.txt

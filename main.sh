@@ -58,6 +58,10 @@ check_api_keys() {
 }
 
 check_api_keys
+
+# Explicitly export OpenRouter variables for Python subprocesses
+export OPENROUTER_API_KEY
+export OPENROUTER_MODEL
  
 # Check OpenRouter API Connectivity if key is present
 if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "your_openrouter_api_key_here" ]; then
@@ -91,7 +95,7 @@ export TARGET
 export RESULTS_DIR
 
 # Create results directory structure
-mkdir -p "${RESULTS_DIR}"/{subdomains,urls,httpx,network,dns,firewall,nuclei,screenshots,wordpress,context,final_report}
+mkdir -p "${RESULTS_DIR}"/{subdomains,urls,httpx,network,dns,firewall,nuclei,screenshots,wordpress,context,final_report,route_analysis}
 
 # Log file
 LOG_FILE="${RESULTS_DIR}/vapt_${TARGET}_log.txt"
@@ -162,20 +166,24 @@ print_banner "Reconnaissance Phase"
 execute_module "Scanning Subdomains" "subdomain_enum.sh" "${RESULTS_DIR}/subdomains"
 execute_module "Discovering URLs" "url_discovery.sh" "${RESULTS_DIR}/urls"
 
+print_banner "Live Host Discovery & Filtering"
+execute_module "Filtering Live Hosts (HTTPX)" "httpx_live_filter.sh" "${RESULTS_DIR}/httpx"
+
 print_banner "Analysis Phase"
 execute_module "Analyzing Technologies" "httpx_analysis.sh" "${RESULTS_DIR}/httpx"
 execute_module "Gathering Network Info" "network_info.sh" "${RESULTS_DIR}/network"
 execute_module "Querying DNS Records" "dns_info.sh" "${RESULTS_DIR}/dns"
 execute_module "Detecting Firewalls" "firewall_detection.sh" "${RESULTS_DIR}/firewall"
 
-print_banner "Deep Discovery Phase (V3 Enterprise)"
-execute_module "Historical Recon (GAU/Wayback)" "historical_scan.sh" "${RESULTS_DIR}/urls"
-execute_module "Advanced Recon (Uncover)" "uncover_recon.sh" "${RESULTS_DIR}/uncover"
-execute_module "Fuzzing Content (Feroxbuster)" "content_discovery.sh" "${RESULTS_DIR}/content"
-execute_module "Spidering & Parameter Mining (Gospider)" "spidering.sh" "${RESULTS_DIR}/spidering"
+print_banner "Deep Discovery Phase"
+execute_module "Historical Reconnaissance (Wayback/GAU)" "historical_scan.sh" "${RESULTS_DIR}/urls"
+execute_module "Spidering (GoSpider)" "spidering.sh" "${RESULTS_DIR}/spidering"
 
 # Combine all URL sources for advanced scanning
-cat "${RESULTS_DIR}/urls/"*.txt "${RESULTS_DIR}/spidering/"*.txt "${RESULTS_DIR}/content/"*.txt 2>/dev/null | sort -u > "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
+cat "${RESULTS_DIR}/urls/"*.txt "${RESULTS_DIR}/spidering/"*.txt 2>/dev/null | sort -u > "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
+
+print_banner "Intelligent Route Analysis"
+execute_module "Analyzing Vulnerable Routes (IDOR/SQLi/SSRF/XSS)" "vulnerable_routes.sh" "${RESULTS_DIR}/route_analysis"
 
 print_banner "Active Vulnerability Phase"
 execute_module "Secrets Scanning (TruffleHog)" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
@@ -203,5 +211,15 @@ else
     echo "Basic report structure available in ${RESULTS_DIR}/context/"
 fi
 
+# Generate HTML Report
+echo -e "${BLUE}[*] Generating Final HTML Report...${NC}"
+python3 utils/report_generator.py "${TARGET}" "${RESULTS_DIR}" 2>/dev/null || echo -e "${YELLOW}HTML report generation not yet implemented${NC}"
+
 echo -e "\n${GREEN}${BOLD}Scan Completed Successfully!${NC}"
-echo -e "Report: ${BLUE}${RESULTS_DIR}/final_report/vapt_${TARGET}_report.html${NC}"
+echo -e "Results Directory: ${BLUE}${RESULTS_DIR}${NC}"
+if [ -f "${RESULTS_DIR}/final_report/vapt_${TARGET}_report.html" ]; then
+    echo -e "HTML Report: ${BLUE}${RESULTS_DIR}/final_report/vapt_${TARGET}_report.html${NC}"
+fi
+if [ -f "${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md" ]; then
+    echo -e "AI Report: ${BLUE}${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md${NC}"
+fi

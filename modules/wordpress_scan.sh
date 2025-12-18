@@ -13,19 +13,42 @@ scan_wordpress() {
     local domain=$1
     local output_file="${OUTPUT_DIR}/vapt_${TARGET}_wpscan_${domain}.txt"
     
-    # Build command
-    local cmd="${WPSCAN_PATH} --url \"https://${domain}\" ${WPSCAN_OPTIONS} --output \"${output_file}\" --format cli"
+    echo "Scanning WordPress site: $domain..." >> "${LOG_FILE}"
+    
+    # Validate target is reachable
+    echo "  Validating target accessibility..." >> "${LOG_FILE}"
+    if ! curl -s -I --max-time 10 -k "https://${domain}" > /dev/null 2>&1; then
+        # Try HTTP if HTTPS fails
+        if ! curl -s -I --max-time 10 "http://${domain}" > /dev/null 2>&1; then
+            echo "  Target $domain is not reachable. Skipping." >> "${LOG_FILE}"
+            return 1
+        fi
+        # Use HTTP if HTTPS failed
+        local protocol="http"
+    else
+        local protocol="https"
+    fi
+    
+    # Build command with SSL bypass
+    local cmd="${WPSCAN_PATH} --url \"${protocol}://${domain}\" ${WPSCAN_OPTIONS} --disable-tls-checks --ignore-main-redirect --output \"${output_file}\" --format cli"
     
     # Add API token if present
     if [ -n "$WPSCAN_API_TOKEN" ]; then
         cmd="$cmd --api-token $WPSCAN_API_TOKEN"
     fi
     
-    # Run wpscan
-    # Redirect stdout to the specific output file (handled by --output flag)
-    # Redirect stderr to a debug log
-    echo "Running WPScan for $domain..." >> "${LOG_FILE}"
+    # Run wpscan with error handling
+    echo "  Running WPScan on ${protocol}://${domain}..." >> "${LOG_FILE}"
     eval "$cmd" >> "${OUTPUT_DIR}/wpscan_debug.log" 2>&1
+    
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        echo "  WPScan failed for $domain (exit code: $exit_code). Check wpscan_debug.log" >> "${LOG_FILE}"
+        # Try to extract error message
+        tail -n 5 "${OUTPUT_DIR}/wpscan_debug.log" >> "${LOG_FILE}" 2>&1
+    else
+        echo "  WPScan completed for $domain" >> "${LOG_FILE}"
+    fi
 
     # --- Extra Blog-Inspired Checks ---
     echo "Running Extra Checks for $domain..." >> "${LOG_FILE}"

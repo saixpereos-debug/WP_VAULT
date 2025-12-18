@@ -53,6 +53,15 @@ def build_context(target, results_dir):
     # Process WordPress scan results
     process_wordpress_results(context, results_dir)
     
+    # Process secret scanning results
+    process_secret_scanning(context, results_dir)
+    
+    # Process live host statistics
+    process_live_hosts(context, results_dir)
+    
+    # Process vulnerable route analysis
+    process_vulnerable_routes(context, results_dir)
+    
     # Save optimized context
     context_file = os.path.join(context_dir, f"vapt_{target}_optimized_context.json")
     with open(context_file, 'w') as f:
@@ -116,58 +125,75 @@ def process_httpx(context, results_dir):
     
     technologies = set()
 
-    # Process WhatWeb results
-    whatweb_file = os.path.join(results_dir, "httpx", f"vapt_{context['target']}_whatweb.json")
-    if os.path.exists(whatweb_file):
+    if os.path.exists(tech_file):
+        with open(tech_file, 'r') as f:
+            technologies = set(line.strip() for line in f if line.strip())
+    
+    # If no tech file, try to extract from combined JSON
+    if not technologies and os.path.exists(httpx_file):
         try:
-            with open(whatweb_file, 'r') as f:
-                whatweb_data = json.load(f)
-                if isinstance(whatweb_data, list):
-                    for item in whatweb_data:
-                        plugins = item.get('plugins', {})
-                        for plugin_name in plugins.keys():
-                            technologies.add(plugin_name)
+            with open(httpx_file, 'r') as f:
+                for line in f:
+                    try:
+                        data = json.loads(line.strip())
+                        # Extract technologies from various fields
+                        if 'tech' in data and data['tech']:
+                            technologies.update(data['tech'])
+                        if 'technologies' in data and data['technologies']:
+                            technologies.update(data['technologies'])
+                    except json.JSONDecodeError:
+                        continue
         except Exception as e:
             pass
-
-    # Process technology detection
-    tech_items = httpx_data.get('tech_detection', [])
-    
-    for item in tech_items:
-        tech_list = item.get('tech', [])
-        technologies.update(tech_list)
     
     context['summary']['technologies']['count'] = len(technologies)
     context['summary']['technologies']['items'] = list(technologies)
     
-    # Process custom matchers, path probing, and method discovery
-    for category in ['custom_matchers', 'path_probing', 'method_discovery']:
-        items = httpx_data.get(category, [])
-        
-        for item in items:
-            # Create a finding for interesting items
-            if (category == 'custom_matchers' and item.get('status_code') in [200, 301, 302, 403]) or \
-               (category == 'path_probing' and item.get('status_code') == 200) or \
-               (category == 'method_discovery' and len(item.get('methods', [])) > 3):
-                
-                finding = {
-                    "type": "httpx_" + category,
-                    "url": item.get('url', ''),
-                    "title": item.get('title', ''),
-                    "status_code": item.get('status_code', 0),
-                    "content_length": item.get('content_length', 0),
-                    "technologies": item.get('tech', []),
-                    "details": {}
-                }
-                
-                if category == 'custom_matchers':
-                    finding['details']['matched_pattern'] = item.get('matched_pattern', '')
-                elif category == 'path_probing':
-                    finding['details']['discovered_path'] = item.get('path', '')
-                elif category == 'method_discovery':
-                    finding['details']['allowed_methods'] = item.get('methods', [])
-                
-                context['detailed_findings'].append(finding)
+    # Process httpx findings for detailed analysis
+    if os.path.exists(httpx_file):
+        try:
+            with open(httpx_file, 'r') as f:
+                for line in f:
+                    try:
+                        item = json.loads(line.strip())
+                        
+                        # Create findings for interesting responses
+                        status_code = item.get('status_code', 0)
+                        url = item.get('url', '')
+                        
+                        # Flag interesting status codes or paths
+                        if status_code in [403, 401] or any(path in url.lower() for path in ['/admin', '/backup', '/.env', '/.git']):
+                            finding = {
+                                "type": "httpx_interesting",
+                                "url": url,
+                                "title": item.get('title', ''),
+                                "status_code": status_code,
+                                "content_length": item.get('content_length', 0),
+                                "technologies": item.get('tech', []) or item.get('technologies', []),
+                                "server": item.get('server', ''),
+                                "details": {}
+                            }
+                            
+                            # Determine severity based on findings
+                            severity = 'info'
+                            if status_code == 403:
+                                severity = 'medium'
+                                finding['details']['note'] = 'Forbidden resource - may indicate hidden functionality'
+                            elif '/.env' in url or '/.git' in url:
+                                severity = 'high'
+                                finding['details']['note'] = 'Sensitive file exposure detected'
+                            elif '/admin' in url or '/backup' in url:
+                                severity = 'medium'
+                                finding['details']['note'] = 'Administrative or backup endpoint discovered'
+                            
+                            finding['severity'] = severity
+                            context['detailed_findings'].append(finding)
+                            context['summary']['vulnerabilities'][severity] += 1
+                            
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as e:
+            pass
 
 def process_network_info(context, results_dir):
     """Process network information"""
@@ -392,6 +418,99 @@ def process_wordpress_results(context, results_dir):
             
             context['detailed_findings'].append(finding)
             context['summary']['vulnerabilities'][severity] += 1
+
+def process_secret_scanning(context, results_dir):
+    """Process secret scanning results"""
+    secrets_file = os.path.join(results_dir, "secrets", f"vapt_{context['target']}_scraped_secrets.txt")
+    
+    if not os.path.exists(secrets_file):
+        return
+    
+    with open(secrets_file, 'r') as f:
+        secrets = [line.strip() for line in f if line.strip()]
+    
+    if secrets:
+        if 'security_info' not in context:
+            context['security_info'] = {}
+        
+        # Count by type
+        secret_types = {}
+        email_count = 0
+        
+        for secret in secrets:
+            if '[EMAIL]' in secret:
+                email_count += 1
+            elif '[SECRET]' in secret:
+                # Extract secret type
+                match = re.search(r'\[SECRET\]\s+([^:]+):', secret)
+                if match:
+                    secret_type = match.group(1).strip()
+                    secret_types[secret_type] = secret_types.get(secret_type, 0) + 1
+        
+        context['security_info']['secrets_found'] = len(secrets)
+        context['security_info']['emails_found'] = email_count
+        context['security_info']['secret_types'] = secret_types
+        context['security_info']['sample_secrets'] = secrets[:10]  # First 10 for context
+
+def process_live_hosts(context, results_dir):
+    """Process live host statistics"""
+    live_hosts_file = os.path.join(results_dir, "httpx", "live_hosts.txt")
+    interesting_urls_file = os.path.join(results_dir, "httpx", "interesting_urls.txt")
+    
+    if os.path.exists(live_hosts_file):
+        with open(live_hosts_file, 'r') as f:
+            live_hosts = [line.strip() for line in f if line.strip()]
+        
+        if 'recon_info' not in context:
+            context['recon_info'] = {}
+        
+        context['recon_info']['live_hosts_count'] = len(live_hosts)
+        context['recon_info']['live_hosts'] = live_hosts[:20]  # First 20 for context
+    
+    if os.path.exists(interesting_urls_file):
+        with open(interesting_urls_file, 'r') as f:
+            interesting = [line.strip() for line in f if line.strip()]
+        
+        if 'recon_info' not in context:
+            context['recon_info'] = {}
+        
+        context['recon_info']['interesting_urls_count'] = len(interesting)
+        context['recon_info']['interesting_urls'] = interesting[:20]
+
+def process_vulnerable_routes(context, results_dir):
+    """Process vulnerable route analysis results"""
+    routes_file = os.path.join(results_dir, "route_analysis", f"vapt_{context['target']}_vulnerable_routes.json")
+    
+    if not os.path.exists(routes_file):
+        return
+    
+    try:
+        with open(routes_file, 'r') as f:
+            routes_data = json.load(f)
+        
+        if 'vulnerability_analysis' not in context:
+            context['vulnerability_analysis'] = {}
+        
+        # Add summary
+        context['vulnerability_analysis']['vulnerable_routes'] = routes_data.get('summary', {})
+        
+        # Add top findings by type
+        findings_by_type = routes_data.get('findings', {})
+        context['vulnerability_analysis']['top_vulnerable_routes'] = {}
+        
+        for vuln_type, findings in findings_by_type.items():
+            # Keep top 10 of each type
+            context['vulnerability_analysis']['top_vulnerable_routes'][vuln_type] = findings[:10]
+        
+        # Update vulnerability counts
+        for vuln_type, findings in findings_by_type.items():
+            for finding in findings:
+                severity = finding.get('severity', 'info').lower()
+                if severity in context['summary']['vulnerabilities']:
+                    context['summary']['vulnerabilities'][severity] += 1
+    
+    except Exception as e:
+        pass
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

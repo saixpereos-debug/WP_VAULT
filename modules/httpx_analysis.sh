@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# HTTPx analysis module
+# HTTPx analysis module - Technology detection and analysis
 
 TARGET=$1
 OUTPUT_DIR=$2
@@ -17,65 +17,71 @@ else
     echo "https://${TARGET}" > "${URL_LIST}"
 fi
 
-# Tech Detection
-# We prioritize httpx -tech-detect (which uses wappalyzer fingerprints) as it is faster and built-in.
-# If wappalyzer-cli is installed, we can use it for deeper scan, but for now we rely on httpx.
+echo "Running HTTPX technology detection and analysis..." >> "${LOG_FILE}"
 
-echo "Running Tech Detection (HTTPX)..." >> "${LOG_FILE}"
-# WhatWeb is deprecated in this workflow in favor of modern JSON-based tools
-# if [ -x "$WHATWEB_PATH" ]; then ... fi  <-- REMOVED
+# Run optimized httpx with all flags in one call
+${HTTPX_PATH} -list "${URL_LIST}" \
+    -sc -cl -location -title -td -server \
+    -mc 200,301,302,403,404,500 \
+    -path "/admin,/wp-admin,/wp-login.php,/backup,/old,/test,/dev,/.env,/.git" \
+    -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_combined.json" >> "${LOG_FILE}" 2>&1
 
-# Run httpx with enhanced flags
-# -sc: status code
-# -cl: content length
-# -location: redirect location
-# -title: page title
-# -td: tech detect
-# -server: server header
-${HTTPX_PATH} -l "${URL_LIST}" -sc -cl -location -title -td -server -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_tech.json" >/dev/null 2>&1
-
-${HTTPX_PATH} -l "${URL_LIST}" -mc "${HTTPX_MATCHER_CODES}" -md "${HTTPX_MATCHER_DOMAINS}" -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_matchers.json" >/dev/null 2>&1
-
-${HTTPX_PATH} -l "${URL_LIST}" -path "${HTTPX_PATHS_TO_PROBE}" -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_paths.json" >/dev/null 2>&1
-
-${HTTPX_PATH} -l "${URL_LIST}" -x "${HTTPX_METHODS_TO_CHECK}" -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_methods.json" >/dev/null 2>&1
-
-# Combine all httpx results
-python3 -c "
+# Process and extract technologies using Python
+python3 << 'PYTHON_SCRIPT'
 import json
 import os
-import glob
+import sys
 
-# Read all JSON files
+output_dir = os.environ.get('OUTPUT_DIR', '')
+target = os.environ.get('TARGET', '')
+
+combined_file = f"{output_dir}/vapt_{target}_httpx_combined.json"
+
+if not os.path.exists(combined_file):
+    print(f"No httpx results found at {combined_file}", file=sys.stderr)
+    sys.exit(0)
+
+technologies = set()
 tech_data = []
-matcher_data = []
-path_data = []
-method_data = []
 
-def read_json_lines(filepath):
-    data = []
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, 'r') as f:
-                for line in f:
-                    try:
-                        data.append(json.loads(line))
-                    except: pass
-        except: pass
-    return data
+try:
+    with open(combined_file, 'r') as f:
+        for line in f:
+            try:
+                data = json.loads(line.strip())
+                tech_data.append(data)
+                
+                # Extract technologies
+                if 'tech' in data and data['tech']:
+                    for tech in data['tech']:
+                        technologies.add(tech)
+                
+                # Also check technologies field (different httpx versions)
+                if 'technologies' in data and data['technologies']:
+                    for tech in data['technologies']:
+                        technologies.add(tech)
+                        
+            except json.JSONDecodeError:
+                continue
+except Exception as e:
+    print(f"Error processing httpx results: {e}", file=sys.stderr)
 
-tech_data = read_json_lines('${OUTPUT_DIR}/vapt_${TARGET}_httpx_tech.json')
-matcher_data = read_json_lines('${OUTPUT_DIR}/vapt_${TARGET}_httpx_matchers.json')
-path_data = read_json_lines('${OUTPUT_DIR}/vapt_${TARGET}_httpx_paths.json')
-method_data = read_json_lines('${OUTPUT_DIR}/vapt_${TARGET}_httpx_methods.json')
+# Save extracted technologies
+tech_file = f"{output_dir}/vapt_{target}_technologies.txt"
+with open(tech_file, 'w') as f:
+    for tech in sorted(technologies):
+        f.write(f"{tech}\n")
 
-combined_data = {
-    'tech_detection': tech_data,
-    'custom_matchers': matcher_data,
-    'path_probing': path_data,
-    'method_discovery': method_data
-}
+print(f"Technologies detected: {len(technologies)}", file=sys.stderr)
 
-with open('${OUTPUT_DIR}/vapt_${TARGET}_httpx_combined.json', 'w') as f:
-    json.dump(combined_data, f, indent=2)
-" >> "${LOG_FILE}" 2>&1
+PYTHON_SCRIPT
+
+# Extract technologies for summary
+if [ -f "${OUTPUT_DIR}/vapt_${TARGET}_technologies.txt" ]; then
+    TECH_COUNT=$(wc -l < "${OUTPUT_DIR}/vapt_${TARGET}_technologies.txt" 2>/dev/null || echo "0")
+    echo "  Technologies detected: ${TECH_COUNT}" >> "${LOG_FILE}"
+    echo "TECH_DETECTED=${TECH_COUNT}"
+else
+    echo "  No technologies detected" >> "${LOG_FILE}"
+    echo "TECH_DETECTED=0"
+fi

@@ -1,3 +1,0 @@
-[
-{"target":"https://xpereos.in","http_status":403,"request_config":{"headers":{"User-Agent":"WhatWeb/0.5.5"}},"plugins":{"Country":{"string":["GERMANY"],"module":["DE"]},"HTML5":{},"HTTPServer":{"string":["hcdn"]},"IP":{"string":["93.127.173.83"]},"Script":{},"Title":{"string":["Checking your browser before accessing. Just a moment..."]},"UncommonHeaders":{"string":["permissions-policy,referrer-policy,content-security-policy,alt-svc,x-hcdn-request-id"]},"X-UA-Compatible":{"string":["IE=Edge"]}}}
-]

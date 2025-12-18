@@ -28,22 +28,126 @@ Output professionally: Use markdown, code blocks (with language specified), tabl
 # Connectivity Check Prompt
 CONNECTIVITY_PROMPT = """This is a connectivity check. Please respond with "Connection successful." and nothing else."""
 
-# Analysis Prompt Template
+# Analysis Prompt Template - Optimized with Context Engineering Principles
 ANALYSIS_PROMPT_TEMPLATE = """
-You are analyzing outputs from VAPT tools as part of an authorized penetration test.
+=== ROLE AND STATE INITIALIZATION ===
 
-Context (target details, scope, previous findings):
+You are a Senior VAPT Report Analyst with OSCP, OSCE, and GXPN certifications. Your expertise is transforming raw security scan data into professional, client-ready vulnerability assessment reports that follow industry standards (NIST, OWASP, SANS).
+
+Your current task: Analyze the provided scan data and generate a STRUCTURED, PROFESSIONAL security assessment report.
+
+=== MANDATORY OUTPUT CONSTRAINTS ===
+
+You MUST follow this EXACT structure. Deviation will result in report rejection:
+
+1. Start with: # Findings, Observations and Recommendations
+2. Number each vulnerability sequentially (1, 2, 3...)
+3. Include ALL required sections for each vulnerability as defined in the template below.
+4. Use ONLY actual scan data in Proof of Concept sections.
+5. Calculate precise CVSS v3.1 scores.
+6. Map to appropriate CWE classifications.
+7. Separate each vulnerability with a horizontal rule (---).
+8. End the report with:
+   **End of Report**
+   *This report was generated using AI-assisted vulnerability analysis. All findings should be verified manually before remediation.*
+
+=== INPUT DATA ===
+
+**Target Context:**
 {context}
 
-Tool/Scan Data (raw output, logs, screenshots if described):
+**Raw Scan Results:**
 {scan_data}
 
-Task:
-1. Identify potential vulnerabilities from the data (including exploitable ones).
-2. Suggest exploitation approaches, PoC ideas, or automation scripts if applicable.
-3. Classify risks (Critical/High/Medium/Low) with justification.
-4. Recommend next steps: further testing, chaining, or remediation advice.
-5. If needed, provide sample code/payloads/templates for verification in a lab.
+=== STEP-BY-STEP ANALYSIS PROCESS ===
 
-Respond in structured markdown with sections.
+Before generating the report, you MUST mentally execute these steps:
+
+**Step 1: Data Extraction**
+- Identify all unique vulnerabilities from scan data (Nuclei, WPScan, Nmap, etc.)
+- Extract: vulnerability name, affected assets, severity indicators, proof data.
+
+**Step 2: CVSS Calculation**
+For each vulnerability, determine:
+- Attack Vector (AV): Network (N), Adjacent (A), Local (L), Physical (P)
+- Attack Complexity (AC): Low (L), High (H)
+- Privileges Required (PR): None (N), Low (L), High (H)
+- User Interaction (UI): None (N), Required (R)
+- Scope (S): Unchanged (U), Changed (C)
+- Confidentiality Impact (C): None (N), Low (L), High (H)
+- Integrity Impact (I): None (N), Low (L), High (H)
+- Availability Impact (A): None (N), Low (L), High (H)
+
+Calculate base score using CVSS v3.1 logic.
+
+**Step 3: CWE Mapping**
+Match vulnerability type to CWE (e.g., CWE-16 for config, CWE-200 for info exposure).
+
+**Step 4: Risk Assessment**
+Define 3-5 specific, realistic risks based on the technical finding.
+
+**Step 5: Remediation Planning**
+Provide 5-7 actionable, numbered remediation steps.
+
+=== REPORT STRUCTURE TEMPLATE ===
+
+For EACH vulnerability, use this EXACT format:
+
+```markdown
+## [NUMBER]. [DESCRIPTIVE VULNERABILITY NAME]
+
+### Severity
+[Critical/High/Medium/Low]
+
+### CVSS v3.1 Score
+Score: [X.X] ([Severity])
+CVSS:3.1/AV:[metric]/AC:[metric]/PR:[metric]/UI:[metric]/S:[metric]/C:[metric]/I:[metric]/A:[metric]
+
+### CVSSv3.1 Vector
+- Attack Vector (AV): [Value]
+- Attack Complexity (AC): [Value]
+- Privileges Required (PR): [Value]
+- User Interaction (UI): [Value]
+- Scope (S): [Value]
+- Confidentiality (C): [Value]
+- Integrity (I): [Value]
+- Availability (A): [Value]
+
+### CWE
+CWE-[NUMBER]: [CWE Name]
+
+### Affected Assets
+- [Asset 1]
+- [Asset 2]
+
+### Description
+[Professional description of the vulnerability and its technical context.]
+
+### Risks
+- [Risk 1]
+- [Risk 2]
+- [Risk 3]
+- [Risk 4]
+- [Risk 5]
+
+### Proof of Concept
+```
+[ACTUAL SCAN DATA EXTRACTED FROM INPUT]
+```
+
+### Remediation
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+4. [Step 4]
+5. [Step 5]
+6. [Step 6]
+```
+
+=== EXECUTION INSTRUCTION ===
+
+Order findings by severity: Critical → High → Medium → Low.
+Ensure the output is clean, professional, and identifies as many valid findings as possible from the provided data.
+
+Begin generating the professional VAPT report now.
 """

@@ -40,14 +40,42 @@ fi
 echo "  Executing TruffleHog filesystem scan..." >> "${LOG_FILE}"
 $TRUFFLEHOG_PATH filesystem "$TEMP_CONTENT" --json > "${OUTPUT_DIR}/vapt_${TARGET}_trufflehog.json" 2>>"${LOG_FILE}"
 
-# Step 3: Run Deep Regex Scraper (Emails & Keys in Response Body)
-echo "  Running Deep Regex Scraper on discovered URLs..." >> "${LOG_FILE}"
+# Step 3: Run Enhanced Deep Regex Scraper (Emails & Keys in Response Body)
+echo "  Running Enhanced Regex Scraper on discovered URLs..." >> "${LOG_FILE}"
 if [ -f "$URL_FILE" ]; then
-    python3 utils/regex_scraper.py "$URL_FILE" --threads 20 > "${OUTPUT_DIR}/vapt_${TARGET}_scraped_secrets.txt" 2>>"${LOG_FILE}"
+    echo "Scanning for secrets using enhanced regex patterns..." >> "${LOG_FILE}"
+
+    # Filter URLs to only scan relevant file types
+    echo "  Filtering URLs for scannable content..." >> "${LOG_FILE}"
+    grep -E "\.(js|json|xml|env|config|yml|yaml)(\?|$)" "${URL_FILE}" 2>/dev/null | \
+        grep -vE "\.(css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)(\?|$)" | \
+        head -n 500 > "${OUTPUT_DIR}/scannable_urls.txt"
+
+    SCANNABLE_COUNT=$(wc -l < "${OUTPUT_DIR}/scannable_urls.txt" 2>/dev/null || echo "0")
+    echo "  Scannable URLs: ${SCANNABLE_COUNT}" >> "${LOG_FILE}"
+
+    if [ "${SCANNABLE_COUNT}" -eq 0 ]; then
+        echo "  No scannable URLs found. Skipping regex scraper." >> "${LOG_FILE}"
+        touch "${OUTPUT_DIR}/vapt_${TARGET}_scraped_secrets.txt"
+    else
+        # Run enhanced regex scraper with HTML/JSON/XML parsing
+        python3 utils/regex_scraper.py "${OUTPUT_DIR}/scannable_urls.txt" \
+            --threads 20 \
+            --parse-html \
+            --parse-json \
+            --parse-xml \
+            > "${OUTPUT_DIR}/vapt_${TARGET}_scraped_secrets.txt" 2>> "${LOG_FILE}" || true
+    fi
+
+    rm -f "${OUTPUT_DIR}/scannable_urls.txt"
 else
     # Fallback to just main page if no URL file
     echo "https://${TARGET}/" > "${OUTPUT_DIR}/single_url.txt"
-    python3 utils/regex_scraper.py "${OUTPUT_DIR}/single_url.txt" > "${OUTPUT_DIR}/vapt_${TARGET}_scraped_secrets.txt" 2>>"${LOG_FILE}"
+    python3 utils/regex_scraper.py "${OUTPUT_DIR}/single_url.txt" \
+        --parse-html \
+        --parse-json \
+        --parse-xml \
+        > "${OUTPUT_DIR}/vapt_${TARGET}_scraped_secrets.txt" 2>>"${LOG_FILE}" || true
 fi
 
 # Step 4: Parse Report (Basic)

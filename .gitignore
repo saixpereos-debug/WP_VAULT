@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyc
+
+# Scan results
+results/
+*.log
+
+# Temporary files
+*.swp
+*~
+.DS_Store
+*.bak
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS
+Thumbs.db
