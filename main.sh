@@ -82,11 +82,28 @@ fi
 
 # Check if target domain is provided
 if [ $# -eq 0 ]; then
-    echo -e "${RED}Usage: $0 <target_domain>${NC}"
+    echo -e "${RED}Usage: $0 <target_domain> [--cookie \"session=...\"]${NC}"
     exit 1
 fi
 
 TARGET=$1
+shift
+
+# Default values
+COOKIE=""
+
+# Parse additional arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --cookie) COOKIE="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# Export dynamic variables for modules
+export TARGET
+export COOKIE
 DATE=$(date +"%Y-%m-%d_%H-%M-%S")
 RESULTS_DIR="results/${TARGET}_${DATE}"
 
@@ -106,6 +123,7 @@ clear
 python3 utils/banner.py
 
 echo "Target: $TARGET"
+[ -n "$COOKIE" ] && echo "Authentication: Enabled (Cookie Provided)"
 echo "Started: $(date)"
 echo -e "${NC}"
 echo "------------------------------------------------"
@@ -187,10 +205,11 @@ execute_module "Analyzing Vulnerable Routes (IDOR/SQLi/SSRF/XSS)" "vulnerable_ro
 
 print_banner "Active Vulnerability Phase"
 execute_module "Secrets Scanning (TruffleHog)" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
-execute_module "Advanced Fuzzing & Exploitation (FFUF/Dalfox/SQLMap)" "fuzzing.sh" "${RESULTS_DIR}/fuzzing" "tools/wordlists/raft-medium-directories.txt" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
+execute_module "Advanced Fuzzing & Exploitation (FFUF/Dalfox/SQLMap)" "fuzzing.sh" "${RESULTS_DIR}/fuzzing" "tools/wordlists/raft-medium-directories.txt" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt" "$COOKIE"
 execute_module "Running Nuclei Scans" "nuclei_scan.sh" "${RESULTS_DIR}/nuclei"
 
 execute_module "Specifying WordPress Issues" "wordpress_scan.sh" "${RESULTS_DIR}/wordpress"
+execute_module "Static Analysis of Plugins (SAST)" "plugin_sast.sh" "${RESULTS_DIR}/wordpress"
 execute_module "Capturing Evidence" "screenshots.sh" "${RESULTS_DIR}/screenshots"
 
 print_banner "Reporting Phase"
@@ -203,7 +222,7 @@ if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "your_openrouter_a
     FINAL_REPORT="${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md"
     
     # Execute AI Analysis
-    run_with_spinner "AI Vulnerability Analysis" python3 "$SEC_AI_PATH" analyze --input "${RESULTS_DIR}" --output "${FINAL_REPORT}"
+    run_with_spinner "AI Vulnerability Analysis & PDF Generation" python3 "$SEC_AI_PATH" analyze --input "${RESULTS_DIR}" --output "${FINAL_REPORT}" --format pdf
     
     echo -e "${GREEN}[+] AI Report Generated: ${FINAL_REPORT}${NC}"
 else

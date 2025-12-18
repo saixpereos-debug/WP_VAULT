@@ -5,6 +5,7 @@ import sys
 try:
     from sec_ai.api_client import OpenRouterClient
     from sec_ai.prompts import CONNECTIVITY_PROMPT
+    from sec_ai.report_writer import generate_pdf_report
 except ImportError:
     # Fallback for when running script directly from within directory or if package structure differs
     import sys
@@ -12,9 +13,11 @@ except ImportError:
     try:
         from sec_ai.api_client import OpenRouterClient
         from sec_ai.prompts import CONNECTIVITY_PROMPT
+        from sec_ai.report_writer import generate_pdf_report
     except ImportError:
          from api_client import OpenRouterClient
          from prompts import CONNECTIVITY_PROMPT
+         from report_writer import generate_pdf_report
 
 def load_config():
     # In a real scenario, we might parse config.sh or use environment variables passed from bash.
@@ -82,7 +85,16 @@ def command_analyze(client, args):
         os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
         with open(output_file, 'w') as f:
             f.write(analysis)
-        print(f"[+] Report generated successfully.")
+        print(f"[+] Report generated successfully: {output_file}")
+        
+        # If PDF format requested
+        if args.format == "pdf":
+            pdf_output = output_file.replace(".md", ".pdf")
+            print(f"[-] Converting to professional PDF: {pdf_output}")
+            target_domain = os.path.basename(input_dir).split('_')[0]
+            generate_pdf_report(analysis, pdf_output, target_domain)
+            print(f"[+] PDF Report generated successfully.")
+            
     except Exception as e:
         print(f"[!] Error saving report: {e}")
 
@@ -97,6 +109,7 @@ def main():
     parser_analyze = subparsers.add_parser("analyze", help="Analyze scan results")
     parser_analyze.add_argument("--input", required=True, help="Path to scan results (file or directory)")
     parser_analyze.add_argument("--output", required=True, help="Path to save report")
+    parser_analyze.add_argument("--format", choices=["md", "pdf"], default="md", help="Output format (default: md)")
     
     args = parser.parse_args()
     

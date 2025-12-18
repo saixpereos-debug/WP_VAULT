@@ -153,6 +153,24 @@ def parse_wordpress_results(results_dir):
     
     return wp_data
 
+def parse_sast_results(results_dir):
+    """Parses Plugin SAST JSON results."""
+    sast_findings = []
+    sast_file = os.path.join(results_dir, "wordpress", "sast_*.json")
+    files = glob.glob(sast_file)
+    for fpath in files:
+        try:
+            plugin_name = os.path.basename(fpath).replace("sast_", "").replace(".json", "")
+            with open(fpath, 'r') as f:
+                data = json.load(f)
+                if data:
+                    sast_findings.append({
+                        "plugin": plugin_name,
+                        "findings": data
+                    })
+        except: pass
+    return sast_findings
+
 def get_scan_context(results_dir):
     """Aggregates all results into a structured JSON context for AI analysis."""
     nuclei_data = parse_nuclei_results(results_dir)
@@ -160,6 +178,7 @@ def get_scan_context(results_dir):
     secrets_data = parse_secrets_results(results_dir)
     nmap_data = parse_nmap_results(results_dir)
     wp_data = parse_wordpress_results(results_dir)
+    sast_data = parse_sast_results(results_dir)
     
     # Get target domain from directory name
     target_domain = os.path.basename(results_dir)
@@ -171,6 +190,7 @@ def get_scan_context(results_dir):
         "technology_stack": tech_data,
         "open_ports": nmap_data,
         "wordpress": wp_data,
+        "plugin_sast": sast_data,
         "nuclei_findings": nuclei_data,
         "secrets_found": len(secrets_data) > 0,
         "secrets_count": len(secrets_data)
@@ -227,6 +247,16 @@ def get_scan_context(results_dir):
                 summary += f"  - Description: {v['description']}\n"
             if v.get('curl_command'):
                 summary += f"  - PoC Command: {v['curl_command'][:200]}...\n"
+    
+    summary += f"\n## Plugin Static Analysis (SAST)\n"
+    if not sast_data:
+        summary += "No specific plugin source analysis performed or no issues found.\n"
+    else:
+        for plugin in sast_data:
+            summary += f"- Plugin: {plugin['plugin']}\n"
+            for f in plugin['findings'][:5]:
+                summary += f"  - [{f['severity']}] {f['category']} in {f['file']}:{f['line']}\n"
+                summary += f"    Desc: {f['description']}\n"
     
     summary += f"\n## Secrets Detection\n"
     if not secrets_data:

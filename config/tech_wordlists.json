@@ -1,0 +1,9 @@
+{
+    "wordpress": "tools/wordlists/wp-plugins.txt",
+    "php": "tools/wordlists/php-discoveries.txt",
+    "apache": "tools/wordlists/apache-server.txt",
+    "nginx": "tools/wordlists/nginx-server.txt",
+    "admin": "tools/wordlists/admin-panels.txt",
+    "api": "tools/wordlists/api-endpoints.txt",
+    "default": "tools/wordlists/raft-medium-directories.txt"
+}

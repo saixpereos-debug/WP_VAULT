@@ -26,15 +26,15 @@ Traditional scanners often leave security professionals with mountains of discon
 
 ### 🧠 Red Team AI Analyst (`sec_ai`)
 - **Advanced Persona**: Operates as a Senior Penetration Tester with 15+ years of experience.
+- **Professional Reporting**: Generates high-quality **PDF reports** (branded and confidentiality-labeled).
 - **Anti-Hallucination**: Strictly evidence-based reporting using actual scan data.
 - **Exploit Reasoning**: Generates valid Python/Bash PoCs and calculates precise **CVSS v3.1** scores.
-- **CWE Mapping**: Automatically maps findings to standard Common Weakness Enumerations.
 
 ### 🛡️ Deep Discovery & Vulnerability Scanning
-- **Deep Secrets Scraping**: Scans every discovered URL for AWS, Google, Stripe, and Slack keys.
-- **Intelligent Route Analysis**: Identifies potential IDOR, SQLi, and SSRF endpoints.
-- **WordPress Specifics**: Deep enumeration of users, plugins, themes, and Timthumb vulnerabilities via WPScan & Nuclei.
-- **Cloud Recon**: Built-in support for **Uncover** (Shodan/Censys) to find exposed assets.
+- **Authenticated Scans**: New support for `--cookie` based testing in `main.sh`.
+- **Intelligent Fuzzing**: Technology-aware wordlist selection based on `httpx` fingerprints.
+- **Plugin Static Analysis (SAST)**: Automated analysis of identified plugin source code for dangerous PHP sinks.
+- **Deep Secrets Scraping**: Enhanced patterns for service keys (Twilio, Firebase, etc.) and JS endpoints.
 
 ---
 

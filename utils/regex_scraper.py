@@ -31,8 +31,16 @@ KEY_PATTERNS = {
     "Stripe API Key": r"sk_live_[0-9a-zA-Z]{24,}",
     "Firebase URL": r"[a-z0-9-]+\.firebaseio\.com",
     "Database URL": r"(?i)(mysql|postgres|mongodb|redis)://[^\s\"'<>]+",
-    "Username Pattern": r"(?i)(?:username|user|uname)[\s=:\"\'\`]{1,5}([a-zA-Z0-9_-]{3,20})",
-    "Password Pattern": r"(?i)(?:password|passwd|pwd)[\s=:\"\'\`]{1,5}([^\s\"'<>]{6,})",
+    "S3 Bucket": r"[a-z0-9.-]+\.s3\.amazonaws\.com|[a-z0-9.-]+\.s3-[a-z0-9-]+\.amazonaws\.com",
+    "Twilio Account SID": r"AC[a-f0-9]{32}",
+    "Twilio Auth Token": r"(?i)twilio.*['\"][a-f0-9]{32}['\"]",
+    "MailChimp API Key": r"[0-9a-f]{32}-us[0-9]{1,2}",
+    "Mailgun API Key": r"key-[0-9a-f]{32}",
+    "Heroku API Key": r"(?i)heroku.*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    "PayPal Braintree Token": r"access_token\$production\$[0-9a-z]{16}\$[0-9a-f]{32}",
+    "Internal IP": r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}",
+    "Potential Endpoint": r"(['\"])/(?:api|v1|v2|v3|admin|config|debug|setup|upload|download)/[a-zA-Z0-9\-_/.]{3,50}(?:['\"])",
+    "WP Config leak": r"define\(['\"]DB_(?:NAME|USER|PASSWORD|HOST)['\"]",
 }
 
 def parse_html(content):
