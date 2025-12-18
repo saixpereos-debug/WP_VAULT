@@ -32,3 +32,5 @@ echo -e "\n[+] Zone Transfer Check:" >> "${OUTPUT_FILE}"
 for ns in $(dig +short NS ${TARGET}); do
     timeout 5 dig axfr ${TARGET} @${ns} >> "${OUTPUT_FILE}" 2>&1
 done
+
+exit 0

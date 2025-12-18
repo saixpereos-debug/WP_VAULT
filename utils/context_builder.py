@@ -419,6 +419,35 @@ def process_wordpress_results(context, results_dir):
             context['detailed_findings'].append(finding)
             context['summary']['vulnerabilities'][severity] += 1
 
+    # Process Extra Checks (Rule set findings)
+    extra_checks_file = os.path.join(results_dir, "wordpress", f"vapt_{context['target']}_extra_checks.txt")
+    if os.path.exists(extra_checks_file):
+        with open(extra_checks_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                severity = "medium"
+                if "[CRITICAL]" in line:
+                    severity = "critical"
+                elif "[HIGH]" in line:
+                    severity = "high"
+                elif "[!]" in line:
+                    severity = "high" # Map [!] to High for security visibility
+                
+                finding = {
+                    "type": "wordpress_extra",
+                    "severity": severity,
+                    "name": "WordPress Rule Finding",
+                    "description": line,
+                    "url": context['target'],
+                    "details": {}
+                }
+                
+                context['detailed_findings'].append(finding)
+                context['summary']['vulnerabilities'][severity] += 1
+
 def process_secret_scanning(context, results_dir):
     """Process secret scanning results"""
     secrets_file = os.path.join(results_dir, "secrets", f"vapt_{context['target']}_scraped_secrets.txt")

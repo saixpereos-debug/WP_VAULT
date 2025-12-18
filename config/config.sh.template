@@ -60,5 +60,8 @@ GOSPIDER_OPTIONS="-d 2 --no-redirect -t 20"
 WORDPRESS_TEMPLATES="cves/wordpress/,vulnerabilities/wordpress/,misconfiguration/wordpress/"
 CUSTOM_WORDPRESS_TEMPLATES="templates/nuclei/"
 
+# External API Keys for Recon Tools
+SHODAN_API_KEY="" # Your Shodan API Key here
+
 # Sensitive routes detection context for OpenRouter
 SENSITIVE_ROUTES_PROMPT="Analyze the following URLs and identify potentially sensitive endpoints or routes that might expose sensitive information, admin panels, or configuration files. For each identified endpoint, explain why it might be sensitive and what security implications it could have."

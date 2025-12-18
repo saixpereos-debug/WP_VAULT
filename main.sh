@@ -1,87 +1,14 @@
 #!/bin/bash
 
-# Enhanced Vṛthā - WordPress VAPT Automation Framework v2.0
-# Main execution script
+# Configuration for colors (before sourcing to ensure usage check is pretty)
+RED=$'\e[0;31m'
+GREEN=$'\e[0;32m'
+YELLOW=$'\e[0;33m'
+BLUE=$'\e[0;34m'
+NC=$'\e[0m' # No Color
 
-# Load configuration and UI logger
-set -a
-source config/config.sh
-# Run Dependency Check
-source utils/check_deps.sh
-
-# Interactive API Key Check
-check_api_keys() {
-    local config_updated=false
-    
-    # Check OpenRouter API Key
-    if [ -z "$OPENROUTER_API_KEY" ] || [ "$OPENROUTER_API_KEY" == "your_openrouter_api_key_here" ]; then
-        echo -e "${YELLOW}[!] OpenRouter API Key is missing or default.${NC}"
-        echo -e "   This key is required for AI-powered report generation."
-        read -p "   Please enter your OpenRouter API Key (or press Enter to skip): " input_key
-        if [ -n "$input_key" ]; then
-            OPENROUTER_API_KEY="$input_key"
-            # Update config file
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s/OPENROUTER_API_KEY=\".*\"/OPENROUTER_API_KEY=\"$input_key\"/" config/config.sh
-            else
-                sed -i "s/OPENROUTER_API_KEY=\".*\"/OPENROUTER_API_KEY=\"$input_key\"/" config/config.sh
-            fi
-            config_updated=true
-            echo -e "${GREEN}   Saved to config/config.sh${NC}"
-        fi
-    fi
-
-    # Check WPScan API Token
-    if [ -z "$WPSCAN_API_TOKEN" ]; then
-        echo -e "${YELLOW}[!] WPScan API Token is missing.${NC}"
-        echo -e "   This token is required for the most up-to-date vulnerability database."
-        echo -e "   You can get a free token from https://wpscan.com/api"
-        read -p "   Please enter your WPScan API Token (or press Enter to skip): " input_token
-        if [ -n "$input_token" ]; then
-            WPSCAN_API_TOKEN="$input_token"
-            # Update config file
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                 sed -i '' "s/WPSCAN_API_TOKEN=\".*\"/WPSCAN_API_TOKEN=\"$input_token\"/" config/config.sh
-            else
-                 sed -i "s/WPSCAN_API_TOKEN=\".*\"/WPSCAN_API_TOKEN=\"$input_token\"/" config/config.sh
-            fi
-            config_updated=true
-            echo -e "${GREEN}   Saved to config/config.sh${NC}"
-        fi
-    fi
-    
-    # Re-export if updated
-    if [ "$config_updated" = true ]; then
-        export OPENROUTER_API_KEY
-        export WPSCAN_API_TOKEN
-    fi
-}
-
-check_api_keys
-
-# Explicitly export OpenRouter variables for Python subprocesses
-export OPENROUTER_API_KEY
-export OPENROUTER_MODEL
- 
-# Check OpenRouter API Connectivity if key is present
-if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "your_openrouter_api_key_here" ]; then
-    echo -e "[-] Verifying OpenRouter API Access for model: ${BLUE}${OPENROUTER_MODEL}${NC}"
-    if [ -f "$SEC_AI_PATH" ]; then
-        python3 "$SEC_AI_PATH" check
-        AI_CHECK_STATUS=$?
-        if [ $AI_CHECK_STATUS -ne 0 ]; then
-             echo -e "${RED}[!] AI Connectivity Check Failed. AI features will be disabled for this session.${NC}"
-             OPENROUTER_API_KEY=""
-        else
-             echo -e "${GREEN}[+] AI Model Connected Successfully.${NC}"
-        fi
-    else
-        echo -e "${RED}[!] sec_ai module not found at $SEC_AI_PATH${NC}"
-    fi
-fi
-
-# Check if target domain is provided
-if [ $# -eq 0 ]; then
+# Check if target domain is provided (Top priority)
+if [ $# -eq 0 ] || [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
     echo -e "${RED}Usage: $0 <target_domain> [--cookie \"session=...\"]${NC}"
     exit 1
 fi
@@ -100,6 +27,84 @@ while [[ "$#" -gt 0 ]]; do
     esac
     shift
 done
+
+# Load configuration and UI logger
+set -a
+source config/config.sh
+# Ensure logger is sourced for UI functions (print_banner, run_with_spinner, etc.)
+source utils/logger.sh
+# Run Dependency Check
+source utils/check_deps.sh
+
+# Initialize AI status (1 = failed/disabled, 0 = success)
+AI_CHECK_STATUS=1
+
+# Interactive API Key Check with Connectivity Test
+check_api_keys() {
+    local max_retries=3
+    local retry_count=0
+    
+    while [ $retry_count -lt $max_retries ]; do
+        local config_updated=false
+        
+        # 1. Check/Prompt for OpenRouter API Key
+        if [ -z "$OPENROUTER_API_KEY" ] || [ "$OPENROUTER_API_KEY" == "your_openrouter_api_key_here" ]; then
+            echo -e "${YELLOW}[!] OpenRouter API Key is missing or default.${NC}"
+            read -p "   Please enter your OpenRouter API Key: " input_key
+            if [ -n "$input_key" ]; then
+                OPENROUTER_API_KEY="$input_key"
+                sed -i "s/OPENROUTER_API_KEY=\".*\"/OPENROUTER_API_KEY=\"$input_key\"/" config/config.sh
+                config_updated=true
+            else
+                echo -e "${RED}[!] Key is required for AI features. Disabling AI for this session.${NC}"
+                OPENROUTER_API_KEY=""
+                return 0
+            fi
+        fi
+
+        # 2. Verify Connectivity
+        if [ -n "$OPENROUTER_API_KEY" ]; then
+            echo -e "[-] Verifying OpenRouter API Access for model: ${BLUE}${OPENROUTER_MODEL}${NC}"
+            export OPENROUTER_API_KEY
+            export OPENROUTER_MODEL
+            
+            python3 "$SEC_AI_PATH" check > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}[+] API Connection Successful.${NC}"
+                AI_CHECK_STATUS=0
+                return 0
+            else
+                echo -e "${RED}[!] API Connectivity Check Failed (Possible 401 Unauthorized or Network Error).${NC}"
+                read -p "   Would you like to re-enter your OpenRouter API Key? (y/N): " re_enter
+                if [[ "$re_enter" =~ ^[Yy]$ ]]; then
+                    OPENROUTER_API_KEY=""
+                    retry_count=$((retry_count + 1))
+                else
+                    echo -e "${YELLOW}[-] Proceeding without AI features.${NC}"
+                    OPENROUTER_API_KEY=""
+                    return 0
+                fi
+            fi
+        fi
+    done
+}
+
+# Check WPScan API Token (Non-critical, no connectivity test needed here)
+check_wpscan_token() {
+    if [ -z "$WPSCAN_API_TOKEN" ]; then
+        echo -e "${YELLOW}[!] WPScan API Token is missing.${NC}"
+        echo -e "   You can get a free token from https://wpscan.com/api"
+        read -p "   Please enter your WPScan API Token (or press Enter to skip): " input_token
+        if [ -n "$input_token" ]; then
+            WPSCAN_API_TOKEN="$input_token"
+            sed -i "s/WPSCAN_API_TOKEN=\".*\"/WPSCAN_API_TOKEN=\"$input_token\"/" config/config.sh
+            export WPSCAN_API_TOKEN
+        fi
+    fi
+}
+
+check_api_keys
+check_wpscan_token
 
 # Export dynamic variables for modules
 export TARGET
@@ -163,7 +168,7 @@ execute_module() {
             ;;
         "nuclei_scan.sh")
             # This is trickier, let's count vulnerabilities from json
-            count=$(jq '.by_category | map(length) | add' "${output_dir}/vapt_${TARGET}_nuclei_categorized.json" 2>/dev/null)
+            count=$(jq '.summary.total_findings // 0' "${output_dir}/vapt_${TARGET}_nuclei_categorized.json" 2>/dev/null)
             log_finding "${count:-0}" "Vulnerabilities (Nuclei)"
             ;;
         "wordpress_scan.sh")
@@ -203,6 +208,15 @@ cat "${RESULTS_DIR}/urls/"*.txt "${RESULTS_DIR}/spidering/"*.txt 2>/dev/null | s
 
 print_banner "Intelligent Route Analysis"
 execute_module "Analyzing Vulnerable Routes (IDOR/SQLi/SSRF/XSS)" "vulnerable_routes.sh" "${RESULTS_DIR}/route_analysis"
+
+# AI-Driven Target Selection for Deep Phases
+if [ "$AI_CHECK_STATUS" -eq 0 ]; then
+    echo -ne "${BLUE}[*] AI selecting interesting targets for Screenshots & Fuzzing...${NC}"
+    mkdir -p "${RESULTS_DIR}/screenshots" "${RESULTS_DIR}/fuzzing"
+    python3 utils/target_selector.py --input "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt" --mode screenshots --output "${RESULTS_DIR}/screenshots/urls_to_screenshot.txt" >> "${LOG_FILE}" 2>&1
+    python3 utils/target_selector.py --input "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt" --mode fuzzing --output "${RESULTS_DIR}/fuzzing/urls_to_fuzz.txt" >> "${LOG_FILE}" 2>&1
+    echo -e "${GREEN} Done.${NC}"
+fi
 
 print_banner "Active Vulnerability Phase"
 execute_module "Secrets Scanning (TruffleHog)" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"

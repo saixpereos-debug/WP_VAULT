@@ -15,12 +15,12 @@ scan_wordpress() {
     
     echo "Scanning WordPress site: $domain..." >> "${LOG_FILE}"
     
-    # Validate target is reachable
-    echo "  Validating target accessibility..." >> "${LOG_FILE}"
-    if ! curl -s -I --max-time 10 -k "https://${domain}" > /dev/null 2>&1; then
+    # Use a standard GET request with a common UA to check accessibility, as some WAFs block HEAD.
+    local ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    if ! curl -s -L --max-time 15 -k -H "User-Agent: $ua" "https://${domain}" > /dev/null 2>&1; then
         # Try HTTP if HTTPS fails
-        if ! curl -s -I --max-time 10 "http://${domain}" > /dev/null 2>&1; then
-            echo "  Target $domain is not reachable. Skipping." >> "${LOG_FILE}"
+        if ! curl -s -L --max-time 15 -H "User-Agent: $ua" "http://${domain}" > /dev/null 2>&1; then
+            echo "  Target $domain is not reachable (Checked with GET). Skipping." >> "${LOG_FILE}"
             return 1
         fi
         # Use HTTP if HTTPS failed
@@ -50,52 +50,83 @@ scan_wordpress() {
         echo "  WPScan completed for $domain" >> "${LOG_FILE}"
     fi
 
-    # --- 2025 Checklist: Extra Discovery Phase ---
-    echo "Running 2025 Checklist Extra Discovery for $domain..." >> "${LOG_FILE}"
+    # --- 2025 Checklist: Advanced Discovery Phase (Rules 1-3) ---
+    echo "Running 2025 Checklist Advanced Rule Automation for $domain..." >> "${LOG_FILE}"
     local EXTRA_OUT="${OUTPUT_DIR}/vapt_${TARGET}_extra_checks.txt"
     
-    # 1. Advanced User Enumeration (REST API & Sitemaps)
-    # Check REST API
-    echo "  Checking REST API User Enumeration..." >> "${LOG_FILE}"
-    rest_users=$(curl -s -k "https://${domain}/wp-json/wp/v2/users")
+    # Rule 2: User Enumeration (WP-ENUM-001)
+    echo "  [Rule 2] Checking User Enumeration (REST API & Author ID)..." >> "${LOG_FILE}"
+    
+    # Check 1: REST API
+    rest_users=$(curl -s -k -H "User-Agent: $ua" "${protocol}://${domain}/wp-json/wp/v2/users")
     if echo "$rest_users" | jq -e '. | type == "array" and length > 0' >/dev/null 2>&1; then
         user_list=$(echo "$rest_users" | jq -r '.[].slug' | tr '\n' ',' | sed 's/,$//')
-        echo "[!] REST API User Exposure: ${user_list}" >> "$EXTRA_OUT"
+        echo "[!] WP-ENUM-001: REST API User Exposure: ${user_list}" >> "$EXTRA_OUT"
     fi
 
-    # Check Author Sitemap
-    if curl -s -I -k "https://${domain}/author-sitemap.xml" | grep -q "HTTP/.* 200"; then
-        echo "[!] Author Sitemap Exposed: https://${domain}/author-sitemap.xml" >> "$EXTRA_OUT"
-    fi
+    # Check 2: Author ID Brute Force (Simple check for ID 1-5)
+    for id in {1..5}; do
+        author_url="${protocol}://${domain}/?author=${id}"
+        # Follow redirects to see where it leads
+        author_resp=$(curl -s -I -L -k -H "User-Agent: $ua" "$author_url")
+        if echo "$author_resp" | grep -qi "Location: .*/author/"; then
+            author_name=$(echo "$author_resp" | grep -i "Location:" | grep -oE "/author/[^/]+" | cut -d'/' -f3)
+            if [ -n "$author_name" ]; then
+                echo "[!] WP-ENUM-001: Author ID Enumeration: Found user '$author_name' at $author_url" >> "$EXTRA_OUT"
+            fi
+        fi
+    done
 
-    # 2. Greedy Sensitive File Discovery (Backups, VCS, Configs)
-    # Ref: 2025 Checklist Items
-    echo "  Scanning for exposed backups and config leaks..." >> "${LOG_FILE}"
-    
-    # Common sensitive paths and backups
-    paths=(
-        ".git/config" ".env" "php.ini" "error_log" "debug.log" "wp-config.php.bak" 
-        "wp-config.php.old" "wp-config.php.save" "wp-config.php.txt" "wp-config.php~"
-        "wp-config.php.swp" ".htaccess.bak" ".htaccess.old" "database.sql" 
-        "dump.sql" "backup.zip" "site.zip" "wp-content/debug.log"
+    # Rule 1: Sensitive Configuration File Exposure (WP-MISCONFIG-001)
+    echo "  [Rule 1] Scanning for exposed backups and config variants..." >> "${LOG_FILE}"
+    # Expanded list based on user rules
+    config_paths=(
+        "wp-config.php" "wp-config.php.bak" "wp-config.txt" "wp-config.zip" 
+        "wp-config.php_orig" "wp-config.save" "wp-config.md" "wp-config.php.old"
+        "wp-config.php.save" "wp-config.php.swp" ".env" "php.ini" "database.sql"
     )
 
-    for path in "${paths[@]}"; do
-        status=$(curl -o /dev/null -s -w "%{http_code}" -k "https://${domain}/$path")
+    for path in "${config_paths[@]}"; do
+        # Ignore main wp-config.php unless it returns 200 AND text content (it should normally be executed by PHP)
+        status=$(curl -o /dev/null -s -w "%{http_code}" -k -H "User-Agent: $ua" "${protocol}://${domain}/$path")
         if [ "$status" == "200" ]; then
-             # Verify it's not a false positive (e.g. 200 with 404 text)
-             if curl -s -k "https://${domain}/$path" | grep -qiE "DB_PASSWORD|DB_NAME|git|env" >/dev/null 2>&1; then
-                echo "[CRITICAL] Sensitive File Exposed: https://${domain}/$path" >> "$EXTRA_OUT"
-             else
-                echo "[!] Potential Sensitive File: https://${domain}/$path (HTTP 200)" >> "$EXTRA_OUT"
+             content=$(curl -s -k -H "User-Agent: $ua" --max-time 5 "${protocol}://${domain}/$path")
+             # Verify it's a real config leak by searching for DB constants
+             if echo "$content" | grep -qiE "DB_PASSWORD|DB_NAME|DB_USER|AUTH_KEY|SECURE_AUTH_KEY" >/dev/null 2>&1; then
+                echo "[CRITICAL] WP-MISCONFIG-001: Sensitive Configuration File Exposed: ${protocol}://${domain}/$path" >> "$EXTRA_OUT"
+             elif [ "$path" != "wp-config.php" ]; then
+                # Potential copy, even if not leaking full DB constants (could be a partial save)
+                echo "[!] Potential Sensitive File Found: ${protocol}://${domain}/$path (HTTP 200)" >> "$EXTRA_OUT"
              fi
         fi
     done
 
-    # 3. Security Hardening Checks
-    # Check for XML-RPC
-    if curl -s -k "https://${domain}/xmlrpc.php" | grep -q "XML-RPC server accepts POST requests only."; then
-        echo "[!] XML-RPC is Enabled at https://${domain}/xmlrpc.php" >> "$EXTRA_OUT"
+    # Rule 3: XML-RPC API Abuse (WP-API-001)
+    echo "  [Rule 3] Auditing XML-RPC API for brute-force and SSRF..." >> "${LOG_FILE}"
+    xmlrpc_url="${protocol}://${domain}/xmlrpc.php"
+    
+    # Step 1: Confirm Presence
+    xmlrpc_resp=$(curl -s -k -H "User-Agent: $ua" "$xmlrpc_url")
+    if echo "$xmlrpc_resp" | grep -q "XML-RPC server accepts POST requests only."; then
+        echo "[!] WP-API-001: XML-RPC is ACTIVE at ${xmlrpc_url}" >> "$EXTRA_OUT"
+        
+        # Step 2: List Methods to detect Brute-Force and SSRF
+        method_list=$(curl -s -k -H "User-Agent: $ua" -X POST -d '<methodCall><methodName>system.listMethods</methodName><params></params></methodCall>' "$xmlrpc_url")
+        
+        # Detect Brute-Force
+        if echo "$method_list" | grep -qiE "wp.getUsersBlogs|metaWeblog.getUsersBlogs|wp.getUserBlogs"; then
+            echo "[!] WP-API-001: XML-RPC vulnerable to Brute-Force (wp.getUsersBlogs found)" >> "$EXTRA_OUT"
+        fi
+        
+        # Detect SSRF (Pingback)
+        if echo "$method_list" | grep -qi "pingback.ping"; then
+            echo "[!] WP-API-001: XML-RPC vulnerable to SSRF (pingback.ping found)" >> "$EXTRA_OUT"
+        fi
+    fi
+
+    # Author Sitemap User Enum (Bonus check)
+    if curl -s -I -k -H "User-Agent: $ua" "${protocol}://${domain}/author-sitemap.xml" | grep -q "HTTP/.* 200"; then
+        echo "[!] User Exposure: Author Sitemap Exposed: ${protocol}://${domain}/author-sitemap.xml" >> "$EXTRA_OUT"
     fi
 
     # 4. Supply Chain Risk: Abandoned Plugins
@@ -110,17 +141,20 @@ scan_wordpress() {
 }
 
 # Scan main domain
-scan_wordpress "${TARGET}"
+scan_wordpress "${TARGET}" || true
 
 # Scan subdomains
 if [ -f "${SUBDOMAINS_FILE}" ]; then
     while IFS= read -r subdomain; do
-        if [ -n "$subdomain" ]; then
-            if curl -s -I -k "https://${subdomain}" --max-time 5 | grep -i "wp-content" >/dev/null 2>&1; then
-                scan_wordpress "${subdomain}"
-            fi
+        [ -z "$subdomain" ] && continue
+        # Quick check for WordPress fingerprints before full scan
+        if curl -s -L -k --max-time 5 "https://${subdomain}" 2>/dev/null | grep -qiE "wp-content|wp-includes|wp-json" >/dev/null 2>&1; then
+            scan_wordpress "${subdomain}" || true
         fi
     done < "${SUBDOMAINS_FILE}"
 fi
 
-cat "${OUTPUT_DIR}"/*.txt > "${OUTPUT_DIR}/vapt_${TARGET}_wpscan_all.txt" 2>/dev/null
+# Combine findings
+cat "${OUTPUT_DIR}"/vapt_${TARGET}_wpscan_*.txt > "${OUTPUT_DIR}/vapt_${TARGET}_wpscan_all.txt" 2>/dev/null || touch "${OUTPUT_DIR}/vapt_${TARGET}_wpscan_all.txt"
+
+exit 0

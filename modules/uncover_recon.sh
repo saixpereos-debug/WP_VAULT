@@ -14,6 +14,12 @@ if [ -z "$UNCOVER_PATH" ] || [ ! -x "$UNCOVER_PATH" ]; then
     echo "Uncover tool not configured. Skipping." >> "${LOG_FILE}"
     exit 0
 fi
+
+# Export API keys for Uncover
+if [ -n "$SHODAN_API_KEY" ]; then
+    export SHODAN_API_KEY="$SHODAN_API_KEY"
+fi
+
 # Check for Uncover configuration (API keys)
 # Uncover uses ~/.config/uncover/provider-config.yaml
 UNCOVER_CONFIG="$HOME/.config/uncover/provider-config.yaml"

@@ -7,7 +7,7 @@ class VrthaPDFReport(FPDF):
         # Logo placeholder or Title
         self.set_font('helvetica', 'B', 20)
         self.set_text_color(0, 102, 204)
-        self.cell(0, 10, 'VṚTHĀ - SECURITY ASSESSMENT REPORT', ln=True, align='C')
+        self.cell(0, 10, 'VRTHA - SECURITY ASSESSMENT REPORT', ln=True, align='C')
         self.set_font('helvetica', 'I', 10)
         self.set_text_color(100)
         self.cell(0, 10, 'Advanced WordPress VAPT Framework v2.1', ln=True, align='C')

@@ -223,6 +223,22 @@ def parse_abandoned_plugins(results_dir):
         except: pass
     return abandoned
 
+def parse_route_analysis(results_dir):
+    """Parses Intelligent Route Analysis JSON results (SSRF/IDOR/etc)."""
+    routes = []
+    routes_file = os.path.join(results_dir, "route_analysis", "*_vulnerable_routes.json")
+    files = glob.glob(routes_file)
+    for fpath in files:
+        try:
+            with open(fpath, 'r') as f:
+                data = json.load(f)
+                # Structure: {"route_vulnerabilities": [{"url": "...", "vulnerability": "...", ...}]}
+                if isinstance(data, dict):
+                    vulns = data.get("route_vulnerabilities", [])
+                    routes.extend(vulns)
+        except: pass
+    return routes
+
 def get_scan_context(results_dir):
     """Aggregates all results into a structured JSON context for AI analysis."""
     nuclei_data = parse_nuclei_results(results_dir)
@@ -233,6 +249,7 @@ def get_scan_context(results_dir):
     sast_data = parse_sast_results(results_dir)
     audit_data = parse_config_audit(results_dir)
     abandoned_data = parse_abandoned_plugins(results_dir)
+    route_data = parse_route_analysis(results_dir)
     
     # Get target domain from directory name
     target_domain = os.path.basename(results_dir)
@@ -247,6 +264,7 @@ def get_scan_context(results_dir):
         "plugin_sast": sast_data,
         "config_audit": audit_data,
         "abandoned_plugins": abandoned_data,
+        "route_analysis": route_data,
         "nuclei_findings": nuclei_data,
         "secrets_found": len(secrets_data) > 0,
         "secrets_count": len(secrets_data)
@@ -336,6 +354,15 @@ def get_scan_context(results_dir):
             if p.get("closed"):
                 summary += f"  - WARNING: Plugin is CLOSED on WordPress.org repository!\n"
     
+    summary += f"\n## Intelligent Route Analysis (SSRF/IDOR/SQLi/XSS)\n"
+    if not route_data:
+        summary += "No critical route-specific vulnerabilities detected during analysis phase.\n"
+    else:
+        summary += f"Found {len(route_data)} potentially vulnerable routes:\n"
+        for r in route_data[:10]: # Limit to first 10
+            summary += f"- [{r['severity']}] {r['vulnerability']} Found in: {r['url']}\n"
+            summary += f"  - Parameter: {r.get('parameter', 'N/A')} | Desc: {r.get('description', '')}\n"
+
     summary += f"\n## Secrets Detection\n"
     if not secrets_data:
         summary += "No secrets detected in scan.\n"

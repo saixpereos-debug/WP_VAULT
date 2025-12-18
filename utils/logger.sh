@@ -51,6 +51,12 @@ log_error() {
 log_finding() {
     local count=$1
     local type=$2
+    
+    # Handle 'null' or non-numeric values
+    if [[ "$count" == "null" ]] || [[ -z "$count" ]] || [[ ! "$count" =~ ^[0-9]+$ ]]; then
+        count=0
+    fi
+
     if [ "$count" -gt 0 ]; then
         echo -e "   ${CYAN}└── Found ${BOLD}${count}${NC}${CYAN} ${type}${NC}"
     else
