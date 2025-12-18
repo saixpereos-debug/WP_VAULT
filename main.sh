@@ -192,6 +192,7 @@ execute_module "Analyzing Technologies" "httpx_analysis.sh" "${RESULTS_DIR}/http
 execute_module "Gathering Network Info" "network_info.sh" "${RESULTS_DIR}/network"
 execute_module "Querying DNS Records" "dns_info.sh" "${RESULTS_DIR}/dns"
 execute_module "Detecting Firewalls" "firewall_detection.sh" "${RESULTS_DIR}/firewall"
+execute_module "Auditing Configuration & Hardening" "config_audit.sh" "${RESULTS_DIR}/context"
 
 print_banner "Deep Discovery Phase"
 execute_module "Historical Reconnaissance (Wayback/GAU)" "historical_scan.sh" "${RESULTS_DIR}/urls"

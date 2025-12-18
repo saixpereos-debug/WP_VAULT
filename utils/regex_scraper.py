@@ -41,6 +41,11 @@ KEY_PATTERNS = {
     "Internal IP": r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}",
     "Potential Endpoint": r"(['\"])/(?:api|v1|v2|v3|admin|config|debug|setup|upload|download)/[a-zA-Z0-9\-_/.]{3,50}(?:['\"])",
     "WP Config leak": r"define\(['\"]DB_(?:NAME|USER|PASSWORD|HOST)['\"]",
+    "DOM XSS Sink: innerHTML": r"\.innerHTML\s*=",
+    "DOM XSS Sink: document.write": r"document\.write\s*\(",
+    "DOM XSS Sink: insertAdjacentHTML": r"\.insertAdjacentHTML\s*\(",
+    "DOM XSS Sink: outerHTML": r"\.outerHTML\s*=",
+    "WordPress REST API": r"/wp-json/wp/v2/[a-zA-Z0-9\-_]+",
 }
 
 def parse_html(content):

@@ -171,6 +171,58 @@ def parse_sast_results(results_dir):
         except: pass
     return sast_findings
 
+def parse_config_audit(results_dir):
+    """Parses configuration audit and header audit results."""
+    audit_data = {
+        "hardening_issues": [],
+        "header_issues": []
+    }
+    
+    # 1. Parse text-based config audit
+    config_file = os.path.join(results_dir, "context", "*_config_audit.txt")
+    files = glob.glob(config_file)
+    for fpath in files:
+        try:
+            with open(fpath, 'r') as f:
+                for line in f:
+                    if line.strip().startswith("[!]"):
+                        audit_data["hardening_issues"].append(line.strip())
+        except: pass
+
+    # 2. Parse header audit JSON
+    header_file = os.path.join(results_dir, "context", "*_header_audit.json")
+    files = glob.glob(header_file)
+    for fpath in files:
+        try:
+            with open(fpath, 'r') as f:
+                data = json.load(f)
+                # Header auditor returns a list of site findings
+                for site in data:
+                    for issue in site.get("issues", []):
+                        audit_data["header_issues"].append({
+                            "url": site.get("url"),
+                            "header": issue.get("header"),
+                            "impact": issue.get("impact")
+                        })
+        except: pass
+        
+    return audit_data
+
+def parse_abandoned_plugins(results_dir):
+    """Parses abandoned plugin audit results."""
+    abandoned = []
+    abandoned_file = os.path.join(results_dir, "wordpress", "*_abandoned_plugins.json")
+    files = glob.glob(abandoned_file)
+    for fpath in files:
+        try:
+            with open(fpath, 'r') as f:
+                data = json.load(f)
+                for item in data:
+                    if item.get("abandoned") or item.get("closed"):
+                        abandoned.append(item)
+        except: pass
+    return abandoned
+
 def get_scan_context(results_dir):
     """Aggregates all results into a structured JSON context for AI analysis."""
     nuclei_data = parse_nuclei_results(results_dir)
@@ -179,6 +231,8 @@ def get_scan_context(results_dir):
     nmap_data = parse_nmap_results(results_dir)
     wp_data = parse_wordpress_results(results_dir)
     sast_data = parse_sast_results(results_dir)
+    audit_data = parse_config_audit(results_dir)
+    abandoned_data = parse_abandoned_plugins(results_dir)
     
     # Get target domain from directory name
     target_domain = os.path.basename(results_dir)
@@ -191,6 +245,8 @@ def get_scan_context(results_dir):
         "open_ports": nmap_data,
         "wordpress": wp_data,
         "plugin_sast": sast_data,
+        "config_audit": audit_data,
+        "abandoned_plugins": abandoned_data,
         "nuclei_findings": nuclei_data,
         "secrets_found": len(secrets_data) > 0,
         "secrets_count": len(secrets_data)
@@ -257,6 +313,28 @@ def get_scan_context(results_dir):
             for f in plugin['findings'][:5]:
                 summary += f"  - [{f['severity']}] {f['category']} in {f['file']}:{f['line']}\n"
                 summary += f"    Desc: {f['description']}\n"
+    
+    summary += f"\n## Configuration & Hardening Audit\n"
+    if not audit_data["hardening_issues"] and not audit_data["header_issues"]:
+        summary += "No significant configuration hardening issues found.\n"
+    else:
+        if audit_data["hardening_issues"]:
+            summary += "### Hardening Issues:\n"
+            for issue in audit_data["hardening_issues"]:
+                summary += f"- {issue}\n"
+        if audit_data["header_issues"]:
+            summary += "### Missing/Weak Security Headers:\n"
+            for issue in audit_data["header_issues"]:
+                summary += f"- {issue['header']}: {issue['impact']}\n"
+
+    summary += f"\n## Supply Chain Security (Abandoned Plugins)\n"
+    if not abandoned_data:
+        summary += "No abandoned or closed plugins detected.\n"
+    else:
+        for p in abandoned_data:
+            summary += f"- [!] {p['slug']} (Last Updated: {p['last_updated']})\n"
+            if p.get("closed"):
+                summary += f"  - WARNING: Plugin is CLOSED on WordPress.org repository!\n"
     
     summary += f"\n## Secrets Detection\n"
     if not secrets_data:

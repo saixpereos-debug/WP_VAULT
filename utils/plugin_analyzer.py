@@ -37,6 +37,21 @@ SINKS = {
     }
 }
 
+JS_SINKS = {
+    "DOM XSS: innerHTML": {
+        "pattern": r"\.innerHTML\s*=",
+        "description": "Insecure DOM modification via innerHTML."
+    },
+    "DOM XSS: document.write": {
+        "pattern": r"document\.write\s*\(",
+        "description": "Direct write to document via document.write()."
+    },
+    "DOM XSS: Eval-like sinks": {
+        "pattern": r"(?:eval|setTimeout|setInterval)\s*\(\s*[^'\"].*?\b(?:location|url|search|hash|cookie)\b",
+        "description": "Evaluation of content derived from potentially untrusted URL or cookie data."
+    }
+}
+
 class PluginAnalyzer:
     def __init__(self, directory):
         self.directory = directory
@@ -50,17 +65,20 @@ class PluginAnalyzer:
             for file in files:
                 if file.endswith('.php'):
                     filepath = os.path.join(root, file)
-                    self.analyze_file(filepath)
+                    self.analyze_file(filepath, SINKS)
+                elif file.endswith('.js'):
+                    filepath = os.path.join(root, file)
+                    self.analyze_file(filepath, JS_SINKS)
         
         return self.findings
 
-    def analyze_file(self, filepath):
+    def analyze_file(self, filepath, sink_dict):
         try:
             with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                 lines = f.readlines()
                 content = "".join(lines)
                 
-                for category, data in SINKS.items():
+                for category, data in sink_dict.items():
                     pattern = data["pattern"]
                     matches = re.finditer(pattern, content)
                     
