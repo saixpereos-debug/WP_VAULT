@@ -114,4 +114,4 @@ The WordPress installation is running version 6.4.2, which contains multiple hig
 - **Disclaimer**: Vṛthā is for authorized security testing only. Unauthorized use on systems without permission is illegal and unethical.
 
 ---
-**Developed with ❤️ by [Sai](https://github.com/saixpereos-debug)**
+**Developed with ❤️ by [Sai](https://github.com/kcsaiganesh)**
