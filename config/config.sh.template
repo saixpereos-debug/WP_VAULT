@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # Configuration variables for Enhanced WordPress VAPT v2.0
+# Copy this file to config.sh and add your API keys.
 
 # OpenRouter API
-OPENROUTER_API_KEY="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"
+OPENROUTER_API_KEY="your_openrouter_api_key_here"
 OPENROUTER_MODEL="qwen/qwen-2.5-coder-32b-instruct"
 # Resolve path relative to this config file
 SEC_AI_PATH="$(dirname "${BASH_SOURCE[0]}")/../sec_ai/main.py"
@@ -44,7 +45,7 @@ NAABU_OPTIONS="-top-ports 1000"
 UNCOVER_OPTIONS="-l 20"
 WPSCAN_OPTIONS="--random-user-agent --detection-mode aggressive --disable-tls-checks --ignore-main-redirect"
 # Note: --url is handled dynamically by the module script
-WPSCAN_API_TOKEN="bqMrmBBahqQQa15bTTSSu623B6zl94V8akuxhWQiqCI"
+WPSCAN_API_TOKEN="your_wpscan_token_here"
 NUCLEI_OPTIONS="-c 50 -bs 25 -retries 2 -no-mhe"
 
 # V3 Options

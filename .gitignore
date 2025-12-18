@@ -10,6 +10,10 @@ __pycache__/
 results/
 *.log
 
+# Configuration
+config/config.sh
+.env
+
 # Temporary files
 *.swp
 *~

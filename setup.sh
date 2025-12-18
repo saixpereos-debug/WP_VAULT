@@ -15,8 +15,13 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}Starting Vṛthā Environment Setup...${NC}"
 
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo -e "${RED}Error: $CONFIG_FILE not found!${NC}"
-    exit 1
+    if [ -f "${CONFIG_FILE}.template" ]; then
+        echo -e "${YELLOW}Config file not found. Creating from template...${NC}"
+        cp "${CONFIG_FILE}.template" "$CONFIG_FILE"
+    else
+        echo -e "${RED}Error: $CONFIG_FILE and template not found!${NC}"
+        exit 1
+    fi
 fi
 
 # Backup existing config
