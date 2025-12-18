@@ -1,64 +1,117 @@
-# Vṛthā (Ex-WP_VAULT) - Advanced WordPress VAPT Framework v2.0
-> **Production-Grade, AI-Powered Red Team Automation for WordPress**
+# Vṛthā (वृथा) - Advanced WordPress VAPT Framework v2.0
 
-**Vṛthā** is the first WordPress VAPT framework to integrate a **"Red Team" AI Analyst** directly into the scanning workflow. It doesn't just list vulnerabilities—it correlates findings, removes false positives, and generates **Exploit PoCs** using a custom Python-based AI engine (`sec_ai`).
+![Vrtha Banner](utils/banner.py)
 
-## 🚀 Key Innovation: The Red Team AI
-Unlike generic tools that dump raw logs, Vṛthā's `sec_ai` module acts as a Senior Penetration Tester:
-*   **Anti-Hallucination**: Strictly adhering to evidence-based reporting.
-*   **Exploit Reasoning**: Suggests valid attack vectors (SQLi, RCE) and generates python/bash PoCs.
-*   **Deep Context**: Correlates technology stack (HTTPX) with vulnerabilities (Nuclei) and secrets (Regex/TruffleHog).
+> **"Offensive Excellence for Defensive Strength"**
+> 
+> Vṛthā is a production-grade, AI-powered automation framework designed for comprehensive Vulnerability Assessment and Penetration Testing (VAPT) of WordPress environments. It chains industry-leading security tools with a sophisticated **Red Team AI Analyst** to deliver actionable intelligence, not just raw logs.
 
-## 🔥 Features
-*   **⚡ Optimized Recon**:
-    *   **Smart DNS**: Filters noise, focuses on TXT (SPF/DMARC) and MX records.
-    *   **Tech Detection**: Uses `httpx` (Wappalyzer engine) for blazing fast, accurate fingerprinting.
-*   **🕵️ Deep Secrets Scraping**:
-    *   Custom multi-threaded scraper (`utils/regex_scraper.py`) scans **every found URL** for API keys (AWS, Google, Stripe) and emails.
-*   **☁️ Cloud Recon**:
-    *   Integrated **Uncover** support (Shodan/Censys) with smart API key handling.
-*   **🧠 Red Team Persona**:
-    *   The AI outputs a report focused on **Exploitation** and **Impact**, not just compliance.
+---
+
+## 🌟 Why Vṛthā?
+
+Traditional scanners often leave security professionals with mountains of disconnected logs. Vṛthā solves this by integrating:
+- **Red Team AI Analyst**: A custom engine (`sec_ai`) that correlates findings and generates Exploit PoCs.
+- **Contextual Intelligence**: It understands that an outdated plugin + a sensitive secret + an exposed route = a critical attack path.
+- **Automated Workflow**: From reconnaissance to professional reporting in a single command.
+
+---
+
+## 🔥 Key Features
+
+### 🕵️ Comprehensive Reconnaissance
+- **Optimized Subdomain Enumeration**: Chaining `subfinder`, `amass`, and `crt.sh`.
+- **Intelligent Tech Detection**: Blazing fast fingerprinting using the `httpx` Wappalyzer engine (replaces WhatWeb).
+- **DNS Security Analysis**: Targeted identification of SPF/DMARC/MX misconfigurations.
+
+### 🧠 Red Team AI Analyst (`sec_ai`)
+- **Advanced Persona**: Operates as a Senior Penetration Tester with 15+ years of experience.
+- **Anti-Hallucination**: Strictly evidence-based reporting using actual scan data.
+- **Exploit Reasoning**: Generates valid Python/Bash PoCs and calculates precise **CVSS v3.1** scores.
+- **CWE Mapping**: Automatically maps findings to standard Common Weakness Enumerations.
+
+### 🛡️ Deep Discovery & Vulnerability Scanning
+- **Deep Secrets Scraping**: Scans every discovered URL for AWS, Google, Stripe, and Slack keys.
+- **Intelligent Route Analysis**: Identifies potential IDOR, SQLi, and SSRF endpoints.
+- **WordPress Specifics**: Deep enumeration of users, plugins, themes, and Timthumb vulnerabilities via WPScan & Nuclei.
+- **Cloud Recon**: Built-in support for **Uncover** (Shodan/Censys) to find exposed assets.
+
+---
 
 ## 🛠️ Tool Stack
-| Category | Tools Used | Why? |
-| :--- | :--- | :--- |
-| **Recon** | `subfinder`, `amass`, `katana` | Industry standard for depth and coverage. |
-| **Analysis** | `httpx`, `dig` | `httpx` replaces WhatWeb for JSON-compatible, fast tech detect. |
-| **Scanning** | `nuclei`, `wpscan` | Nuclei for general vulns, WPScan for deep WP enumeration. |
-| **Secrets** | `trufflehog`, `regex_scraper` | Hybrid approach: pattern matching + entropy analysis. |
-| **AI** | `OpenRouter` (Qwen/GPT-4) | Connects via custom `sec_ai` Python CLI. |
 
-## 📦 Quick Start
+| Phase | Tools |
+| :--- | :--- |
+| **Recon** | `subfinder`, `amass`, `katana`, `httpx` |
+| **Scanning** | `nuclei`, `wpscan`, `trufflehog` |
+| **Analysis** | `naabu`, `uncover`, `regex_scraper` |
+| **AI Content** | `sec_ai` (OpenRouter API - Qwen/GPT-4) |
+| **Reporting** | Custom Python/Shell reporting engine |
 
-### 1. Installation
-We provide a single script to setup Go, Python, and Ruby dependencies.
+---
+
+## 📦 Installation & Setup
+
+### Prerequisites
+- **OS**: Linux (Ubuntu/Debian recommended) or macOS.
+- **Permissions**: Sudo access for installing system dependencies.
+- **Minimum versions**: Python 3.9+, Go 1.21+, Ruby 3.0+.
+
+### Quick Start
 ```bash
-git clone https://github.com/yourusername/vrtha.git
-cd vrtha
+# Clone the repository
+git clone https://github.com/saixpereos-debug/WP_VAULT.git
+cd WP_VAULT
+
+# Run the automated installer
 chmod +x install.sh
-./install.sh
+sudo ./install.sh
 ```
 
-### 2. Configuration (Crucial)
-Add your API keys to enable the AI and Cloud Recon features.
-```bash
-# Edit config/config.sh
-OPENROUTER_API_KEY="sk-..."  # Required for AI Report
-SHODAN_API_KEY="..."         # Optional for Uncover
-```
+### Manual Configuration
+1. **API Keys**: Edit `config/config.sh` and add your keys:
+   - `OPENROUTER_API_KEY`: Required for AI-powered reports.
+   - `WPSCAN_API_TOKEN`: Required for the latest WP vulnerability DB.
+2. **Cloud Recon**: Setup `~/.config/uncover/provider-config.yaml` for Shodan/Censys.
 
-### 3. Run
+---
+
+## 🚀 Usage
+
+### Running a Comprehensive Scan
 ```bash
 ./main.sh target.com
 ```
 
-## 📊 Output
-Results are organized in `results/<target>_<date>/`:
-*   `final_report/`: **The AI-generated Red Team Report** (Markdown/HTML).
-*   `nuclei/`: Vulnerability logs.
-*   `httpx/`: Tech stack details.
-*   `secrets/`: Found API keys and emails.
+### Output & Reports
+Results are organized in `results/<target>_<timestamp>/`:
+- **`final_report/vapt_target_ai_report.md`**: The primary Red Team report.
+- **`wordpress/`**: Detailed WPScan findings.
+- **`nuclei/`**: Categorized vulnerability logs.
+- **`secrets/`**: Found API keys and email exposures.
 
-## 📝 License
-MIT License
+---
+
+## 📊 Sample Output (AI Context)
+```markdown
+## 1. Outdated WordPress Installation (Critical)
+Score: 9.8 (Critical)
+CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+
+### Description
+The WordPress installation is running version 6.4.2, which contains multiple high-severity CVEs related to remote code execution.
+
+### Proof of Concept
+[+] WordPress version 6.4.2 identified (Outdated).
+| Found By: Rss Generator
+| Match: 'wp-includes\/js\/wp-emoji-release.min.js?ver=6.4.2'
+```
+
+---
+
+## 📝 License & Ethics
+- **License**: MIT
+- **Disclaimer**: Vṛthā is for authorized security testing only. Unauthorized use on systems without permission is illegal and unethical.
+
+---
+**Developed with ❤️ by [Sai](https://github.com/saixpereos-debug)**
