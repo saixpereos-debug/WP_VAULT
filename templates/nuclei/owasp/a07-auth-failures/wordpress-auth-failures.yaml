@@ -1,0 +1,58 @@
+id: wordpress-auth-failures
+
+info:
+  name: WordPress Authentication Failures
+  author: vrtha-framework
+  severity: medium
+  description: Detects authentication weaknesses in WordPress (session issues, weak reset, exposed login)
+  reference:
+    - https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N
+    cvss-score: 5.4
+    cwe-id: CWE-287
+  metadata:
+    owasp: A07:2021 - Identification and Authentication Failures
+  tags: wordpress,auth,session,owasp-a07
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-login.php"
+      - "{{BaseURL}}/wp-login.php?action=lostpassword"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "wp-login.php"
+          - "user_login"
+        condition: and
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/wp-login.php"
+    body: "log=admin&pwd=admin&wp-submit=Log+In"
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "The password you entered"
+          - "Unknown username"
+          - "Error:"
+        condition: or
+
+    extractors:
+      - type: regex
+        name: error_message
+        part: body
+        regex:
+          - '<div id="login_error">([^<]+)</div>'

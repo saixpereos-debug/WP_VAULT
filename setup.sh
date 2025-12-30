@@ -36,13 +36,23 @@ update_tool_path() {
 
     echo -n "Checking for $var_name... "
     
-    # Check system PATH
+    # Check common Go bin directory first for ProjectDiscovery tools
     for tool in $tool_names; do
-        if command -v "$tool" >/dev/null 2>&1; then
-            found_path=$(command -v "$tool")
+        if [ -x "/opt/tools/go/bin/$tool" ]; then
+            found_path="/opt/tools/go/bin/$tool"
             break
         fi
     done
+
+    # If not found in Go bin, check system PATH
+    if [ -z "$found_path" ]; then
+        for tool in $tool_names; do
+            if command -v "$tool" >/dev/null 2>&1; then
+                found_path=$(command -v "$tool")
+                break
+            fi
+        done
+    fi
 
     # If not found in PATH, check local tools directory
     if [ -z "$found_path" ]; then

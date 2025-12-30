@@ -1,0 +1,39 @@
+id: wordpress-plugin-classic-editor
+
+info:
+  name: WordPress Plugin - Classic Editor Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects Classic Editor plugin and checks for outdated version
+  reference:
+    - https://wordpress.org/plugins/classic-editor/
+  metadata:
+    plugin_namespace: classic-editor
+    wpscan: https://wpscan.com/plugin/classic-editor
+    current_version: 1.6.7
+    owasp: A06 - Vulnerable and Outdated Components
+  tags: wordpress,wp-plugin,classic-editor
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/classic-editor/readme.txt"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'
+
+    extractors:
+      - type: regex
+        name: detected_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'

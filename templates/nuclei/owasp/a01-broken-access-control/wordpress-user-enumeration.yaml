@@ -1,0 +1,55 @@
+id: wordpress-user-enumeration
+
+info:
+  name: WordPress User Enumeration
+  author: vrtha-framework
+  severity: medium
+  description: Detects exposed WordPress user information via REST API and author archives
+  reference:
+    - https://owasp.org/Top10/A01_2021-Broken_Access_Control/
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N
+    cvss-score: 5.3
+    cwe-id: CWE-200
+  metadata:
+    owasp: A01:2021 - Broken Access Control
+  tags: wordpress,wp-api,user-enum,owasp-a01
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-json/wp/v2/users"
+      - "{{BaseURL}}/?author=1"
+      - "{{BaseURL}}/wp-json/wp/v2/users/1"
+
+    stop-at-first-match: false
+    matchers-condition: or
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"id":'
+          - '"name":'
+          - '"slug":'
+        condition: and
+        
+      - type: regex
+        part: header
+        regex:
+          - 'Location:.*author='
+
+    extractors:
+      - type: regex
+        name: username
+        part: body
+        group: 1
+        regex:
+          - '"slug":"([^"]+)"'
+
+      - type: regex
+        name: display_name
+        part: body
+        group: 1
+        regex:
+          - '"name":"([^"]+)"'

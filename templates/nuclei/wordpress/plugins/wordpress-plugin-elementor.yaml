@@ -1,0 +1,39 @@
+id: wordpress-plugin-elementor
+
+info:
+  name: WordPress Plugin - Elementor Website Builder &#8211; More Than Just a Page Builder Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects Elementor Website Builder &#8211; More Than Just a Page Builder plugin and checks for outdated version
+  reference:
+    - https://wordpress.org/plugins/elementor/
+  metadata:
+    plugin_namespace: elementor
+    wpscan: https://wpscan.com/plugin/elementor
+    current_version: 3.34.0
+    owasp: A06 - Vulnerable and Outdated Components
+  tags: wordpress,wp-plugin,elementor
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/elementor/readme.txt"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'
+
+    extractors:
+      - type: regex
+        name: detected_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'

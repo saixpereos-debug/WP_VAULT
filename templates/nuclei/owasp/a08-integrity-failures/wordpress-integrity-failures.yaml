@@ -1,0 +1,47 @@
+id: wordpress-integrity-failures
+
+info:
+  name: WordPress Software Integrity Failures
+  author: vrtha-framework
+  severity: high
+  description: Detects potential integrity issues (plugin editor, file manager, unsigned components)
+  reference:
+    - https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N
+    cvss-score: 8.1
+    cwe-id: CWE-494
+  metadata:
+    owasp: A08:2021 - Software and Data Integrity Failures
+  tags: wordpress,integrity,editor,owasp-a08
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-admin/plugin-editor.php"
+      - "{{BaseURL}}/wp-admin/theme-editor.php"
+      - "{{BaseURL}}/wp-content/plugins/wp-file-manager/"
+      - "{{BaseURL}}/wp-content/plugins/developer-mode/"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Plugin Editor"
+          - "Theme Editor"
+          - "Edit Plugins"
+          - "Edit Themes"
+        condition: or
+
+      - type: word
+        part: body
+        words:
+          - "wp-file-manager"
+          - "File Manager"
+        condition: or
+
+      - type: status
+        status:
+          - 200
+          - 302

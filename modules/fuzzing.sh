@@ -21,8 +21,8 @@ HTTPX_RESULTS="${RESULTS_DIR}/httpx/vapt_${TARGET}_httpx_combined.json"
 
 if [ -f "$TECH_MAPPING" ] && [ -f "$HTTPX_RESULTS" ]; then
     echo "  Optimizing wordlist based on technology detection..." >> "${LOG_FILE}"
-    # Extract all technologies from httpx results
-    DETECTED_TECHS=$(jq -r '.[].technologies[]? // empty' "$HTTPX_RESULTS" | tr '[:upper:]' '[:lower:]' | sort -u)
+    # Extract all technologies from httpx results (handling JSONL format)
+    DETECTED_TECHS=$(jq -r '.tech[]? // .technologies[]? // empty' "$HTTPX_RESULTS" | tr '[:upper:]' '[:lower:]' | sort -u)
     
     # Check for matches in our mapping
     for tech in $DETECTED_TECHS; do

@@ -1,9 +1,10 @@
 {
-    "wordpress": "tools/wordlists/wp-plugins.txt",
-    "php": "tools/wordlists/php-discoveries.txt",
-    "apache": "tools/wordlists/apache-server.txt",
-    "nginx": "tools/wordlists/nginx-server.txt",
-    "admin": "tools/wordlists/admin-panels.txt",
-    "api": "tools/wordlists/api-endpoints.txt",
-    "default": "tools/wordlists/raft-medium-directories.txt"
+    "wordpress": "tools/wordlists/wordpress-combined.txt",
+    "wp": "tools/wordlists/wordpress-combined.txt",
+    "php": "tools/wordlists/wordpress-combined.txt",
+    "apache": "tools/wordlists/raft-medium-directories.txt",
+    "nginx": "tools/wordlists/raft-medium-directories.txt",
+    "iis": "tools/wordlists/raft-medium-directories.txt",
+    "joomla": "tools/wordlists/raft-medium-directories.txt",
+    "drupal": "tools/wordlists/raft-medium-directories.txt"
 }

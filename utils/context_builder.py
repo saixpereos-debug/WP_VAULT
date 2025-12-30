@@ -114,86 +114,70 @@ def process_urls(context, results_dir):
     context['summary']['urls']['items'] = urls[:100]  # Limit to top 100 for context
 
 def process_httpx(context, results_dir):
-    """Process httpx analysis results"""
+    """Process httpx analysis results (handles JSONL format)"""
     httpx_file = os.path.join(results_dir, "httpx", f"vapt_{context['target']}_httpx_combined.json")
     
     if not os.path.exists(httpx_file):
         return
     
-    with open(httpx_file, 'r') as f:
-        httpx_data = json.load(f)
-    
     technologies = set()
-
-    if os.path.exists(tech_file):
-        with open(tech_file, 'r') as f:
-            technologies = set(line.strip() for line in f if line.strip())
     
-    # If no tech file, try to extract from combined JSON
-    if not technologies and os.path.exists(httpx_file):
-        try:
-            with open(httpx_file, 'r') as f:
-                for line in f:
-                    try:
-                        data = json.loads(line.strip())
-                        # Extract technologies from various fields
-                        if 'tech' in data and data['tech']:
-                            technologies.update(data['tech'])
-                        if 'technologies' in data and data['technologies']:
-                            technologies.update(data['technologies'])
-                    except json.JSONDecodeError:
-                        continue
-        except Exception as e:
-            pass
+    try:
+        with open(httpx_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    item = json.loads(line)
+                    # Extract technologies
+                    for field in ['tech', 'technologies', 'td']:
+                        if field in item and item[field]:
+                            if isinstance(item[field], list):
+                                technologies.update(item[field])
+                            elif isinstance(item[field], str):
+                                technologies.add(item[field])
+                    
+                    # Create findings for interesting responses
+                    status_code = item.get('status_code', 0)
+                    url = item.get('url', '')
+                    
+                    if status_code in [403, 401] or any(path in url.lower() for path in ['/admin', '/backup', '/.env', '/.git']):
+                        finding = {
+                            "type": "httpx_interesting",
+                            "url": url,
+                            "title": item.get('title', ''),
+                            "status_code": status_code,
+                            "content_length": item.get('content_length', 0),
+                            "technologies": item.get('tech', []) or item.get('technologies', []),
+                            "server": item.get('server', ''),
+                            "details": {}
+                        }
+                        
+                        severity = 'info'
+                        if status_code == 403:
+                            severity = 'medium'
+                            finding['details']['note'] = 'Forbidden resource - may indicate hidden functionality'
+                        elif '/.env' in url or '/.git' in url:
+                            severity = 'high'
+                            finding['details']['note'] = 'Sensitive file exposure detected'
+                        elif '/admin' in url or '/backup' in url:
+                            severity = 'medium'
+                            finding['details']['note'] = 'Administrative or backup endpoint discovered'
+                        
+                        finding['severity'] = severity
+                        context['detailed_findings'].append(finding)
+                        context['summary']['vulnerabilities'][severity] += 1
+                        
+                except json.JSONDecodeError:
+                    continue
+    except Exception as e:
+        print(f"Error processing httpx results: {e}")
     
     context['summary']['technologies']['count'] = len(technologies)
-    context['summary']['technologies']['items'] = list(technologies)
-    
-    # Process httpx findings for detailed analysis
-    if os.path.exists(httpx_file):
-        try:
-            with open(httpx_file, 'r') as f:
-                for line in f:
-                    try:
-                        item = json.loads(line.strip())
-                        
-                        # Create findings for interesting responses
-                        status_code = item.get('status_code', 0)
-                        url = item.get('url', '')
-                        
-                        # Flag interesting status codes or paths
-                        if status_code in [403, 401] or any(path in url.lower() for path in ['/admin', '/backup', '/.env', '/.git']):
-                            finding = {
-                                "type": "httpx_interesting",
-                                "url": url,
-                                "title": item.get('title', ''),
-                                "status_code": status_code,
-                                "content_length": item.get('content_length', 0),
-                                "technologies": item.get('tech', []) or item.get('technologies', []),
-                                "server": item.get('server', ''),
-                                "details": {}
-                            }
-                            
-                            # Determine severity based on findings
-                            severity = 'info'
-                            if status_code == 403:
-                                severity = 'medium'
-                                finding['details']['note'] = 'Forbidden resource - may indicate hidden functionality'
-                            elif '/.env' in url or '/.git' in url:
-                                severity = 'high'
-                                finding['details']['note'] = 'Sensitive file exposure detected'
-                            elif '/admin' in url or '/backup' in url:
-                                severity = 'medium'
-                                finding['details']['note'] = 'Administrative or backup endpoint discovered'
-                            
-                            finding['severity'] = severity
-                            context['detailed_findings'].append(finding)
-                            context['summary']['vulnerabilities'][severity] += 1
-                            
-                    except json.JSONDecodeError:
-                        continue
-        except Exception as e:
-            pass
+    context['summary']['technologies']['items'] = sorted(list(technologies))
+    context['summary']['technologies']['count'] = len(technologies)
+    context['summary']['technologies']['items'] = sorted(list(technologies))
 
 def process_network_info(context, results_dir):
     """Process network information"""

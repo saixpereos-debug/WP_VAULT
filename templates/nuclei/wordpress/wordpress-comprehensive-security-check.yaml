@@ -1,0 +1,393 @@
+# Advanced WordPress Security Assessment Template
+# Combines multiple OWASP checks in a single comprehensive template
+
+id: wordpress-comprehensive-security-check
+
+info:
+  name: WordPress Comprehensive Security Assessment
+  author: vrtha-framework
+  severity: info
+  description: |
+    Multi-stage security assessment covering OWASP Top 10 vulnerabilities.
+    This template performs sequential checks and reports findings across categories.
+  reference:
+    - https://owasp.org/www-project-top-ten/
+    - https://wordpress.org/support/article/hardening-wordpress/
+  metadata:
+    max-request: 15
+    owasp: comprehensive
+  tags: wordpress,owasp,security-audit,comprehensive
+
+variables:
+  common_plugins: "contact-form-7,yoast,elementor,wordfence,akismet"
+
+http:
+  # Stage 1: Basic Fingerprinting & Version Detection (A06 - Outdated Components)
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "wp-content"
+          - "wp-includes"
+        condition: or
+        
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        name: wp_version
+        part: body
+        group: 1
+        regex:
+          - '<meta name="generator" content="WordPress ([0-9.]+)'
+          - 'wp-includes/js/wp-embed.min.js\?ver=([0-9.]+)'
+        internal: true
+
+  # Stage 2: User Enumeration (A07 - Authentication Failures)
+  - raw:
+      - |
+        GET /wp-json/wp/v2/users HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          
+      - type: word
+        part: body
+        words:
+          - '"id":'
+          - '"name":'
+          - '"slug":'
+        condition: and
+        
+    extractors:
+      - type: json
+        name: usernames
+        part: body
+        json:
+          - '.[].slug'
+
+  # Stage 3: Debug Mode Check (A05 - Security Misconfiguration)
+  - raw:
+      - |
+        GET /wp-content/debug.log HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /?debug=true HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: or
+    matchers:
+      - type: word
+        name: debug_log_exposed
+        part: body
+        words:
+          - "PHP Fatal error"
+          - "PHP Warning"
+          - "Stack trace in"
+        condition: or
+        
+      - type: regex
+        name: path_disclosure
+        part: body
+        regex:
+          - "/home/[^/]+/public_html"
+          - "/var/www/html"
+          - "C:\\\\[^\\\\]+\\\\htdocs"
+
+  # Stage 4: Directory Listing (A05 - Security Misconfiguration)
+  - raw:
+      - |
+        GET /wp-content/uploads/ HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /wp-content/plugins/ HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /wp-includes/ HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers:
+      - type: word
+        name: directory_listing
+        words:
+          - "Index of"
+          - "Parent Directory"
+        condition: and
+
+  # Stage 5: Exposed Configuration Files (A02 - Cryptographic Failures)
+  - raw:
+      - |
+        GET /wp-config.php.bak HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /wp-config.php.old HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /wp-config.php~ HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /.wp-config.php.swp HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers:
+      - type: regex
+        name: exposed_credentials
+        part: body
+        regex:
+          - "define\\s*\\(\\s*['\"]DB_PASSWORD['\"]\\s*,\\s*['\"]([^'\"]+)"
+          - "define\\s*\\(\\s*['\"]AUTH_KEY['\"]\\s*,\\s*['\"]([^'\"]+)"
+        condition: or
+
+  # Stage 6: XML-RPC Check (A10 - SSRF & Brute Force Vector)
+  - raw:
+      - |
+        POST /xmlrpc.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+        
+        <?xml version="1.0"?>
+        <methodCall>
+          <methodName>system.listMethods</methodName>
+        </methodCall>
+        
+    matchers:
+      - type: word
+        name: xmlrpc_enabled
+        part: body
+        words:
+          - "methodResponse"
+          - "system.listMethods"
+        condition: and
+        
+    extractors:
+      - type: regex
+        name: available_methods
+        part: body
+        regex:
+          - "<string>([^<]+)</string>"
+
+  # Stage 7: SQL Injection (A03 - Injection)
+  - raw:
+      - |
+        GET /?s=%27%20OR%201=1-- HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /?author=1%27%20AND%20SLEEP(5)-- HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: or
+    matchers:
+      - type: regex
+        name: sql_error
+        part: body
+        regex:
+          - "SQL syntax.*MySQL"
+          - "Warning.*mysql_"
+          - "MySQLSyntaxErrorException"
+          - "valid MySQL result"
+          - "check the manual that corresponds to your MySQL"
+          
+      - type: dsl
+        name: time_based_sqli
+        dsl:
+          - 'duration>=5'
+
+  # Stage 8: XSS Test (A03 - Injection)
+  - raw:
+      - |
+        GET /?s=%3Cscript%3Ealert(1)%3C/script%3E HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /?s=%22%3E%3Cscript%3Ealert(document.domain)%3C/script%3E HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers:
+      - type: word
+        name: reflected_xss
+        part: body
+        words:
+          - "<script>alert(1)</script>"
+          - "<script>alert(document.domain)</script>"
+        condition: or
+
+  # Stage 9: Missing Security Headers (A09 - Security Logging Failures)
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers:
+      - type: dsl
+        name: missing_security_headers
+        dsl:
+          - "!contains(tolower(all_headers), 'x-frame-options')"
+          - "!contains(tolower(all_headers), 'x-content-type-options')"
+          - "!contains(tolower(all_headers), 'content-security-policy')"
+          - "!contains(tolower(all_headers), 'strict-transport-security')"
+        condition: or
+
+  # Stage 10: File Upload Path Traversal (A01 - Broken Access Control)
+  - raw:
+      - |
+        GET /wp-content/uploads/../../wp-config.php HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers:
+      - type: word
+        name: path_traversal
+        words:
+          - "DB_NAME"
+          - "DB_PASSWORD"
+        condition: and
+
+  # Stage 11: REST API Security (A01 - Broken Access Control)
+  - raw:
+      - |
+        POST /wp-json/wp/v2/posts HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        
+        {"title":"Test","content":"Test","status":"publish"}
+        
+      - |
+        DELETE /wp-json/wp/v2/posts/1 HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers:
+      - type: status
+        name: unauthorized_api_access
+        status:
+          - 200
+          - 201
+
+  # Stage 12: Plugin Detection with Version Check (A06)
+  - raw:
+      - |
+        GET /wp-content/plugins/{{plugin}}/readme.txt HTTP/1.1
+        Host: {{Hostname}}
+        
+    payloads:
+      plugin: 
+        - contact-form-7
+        - yoast-seo
+        - elementor
+        - wordfence
+        - akismet
+        - woocommerce
+        - jetpack
+        - all-in-one-seo-pack
+        - wpforms-lite
+        - classic-editor
+        
+    attack: pitchfork
+    
+    extractors:
+      - type: regex
+        name: plugin_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable tag:\s*([\d.]+)'
+          
+      - type: kval
+        name: plugin_name
+        kval:
+          - plugin
+
+  # Stage 13: Theme Detection
+  - raw:
+      - |
+        GET /wp-content/themes/twentytwentyfour/style.css HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /wp-content/themes/twentytwentythree/style.css HTTP/1.1
+        Host: {{Hostname}}
+        
+    extractors:
+      - type: regex
+        name: theme_info
+        part: body
+        group: 1
+        regex:
+          - 'Theme Name:\s*(.+)'
+          - 'Version:\s*([\d.]+)'
+
+  # Stage 14: Sensitive Information Exposure (A02)
+  - raw:
+      - |
+        GET /readme.html HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /license.txt HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /.git/config HTTP/1.1
+        Host: {{Hostname}}
+        
+      - |
+        GET /.env HTTP/1.1
+        Host: {{Hostname}}
+        
+    matchers-condition: or
+    matchers:
+      - type: word
+        name: wordpress_readme
+        words:
+          - "WordPress"
+          - "famous five-minute installation"
+        condition: and
+        
+      - type: word
+        name: git_exposed
+        words:
+          - "[core]"
+          - "repositoryformatversion"
+        condition: and
+        
+      - type: regex
+        name: env_exposed
+        regex:
+          - "DB_PASSWORD="
+          - "API_KEY="
+          - "SECRET="
+
+  # Stage 15: Rate Limiting Check (A04 - Insecure Design)
+  - raw:
+      - |
+        POST /wp-login.php HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        
+        log=admin&pwd=wrong&wp-submit=Log+In
+        
+    matchers:
+      - type: dsl
+        name: no_rate_limiting
+        dsl:
+          - 'status_code != 429'
+          - 'status_code != 403'
+          - '!contains(body, "too many")'
+          - '!contains(body, "rate limit")'
+        condition: and

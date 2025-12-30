@@ -140,21 +140,9 @@ execute_module() {
     local task_name=$1
     local module_script=$2
     local output_dir=$3
+    shift 3
     
-    # We use run_with_spinner to execute the module
-    # The module itself usually produces output files, so we don't need to capture stdout
-    # The module might print 'log_finding' lines, but since run_with_spinner redirects everything to LOG_FILE,
-    # we need a way to extract the summary finding or let the module write a summary file we can read.
-    
-    # NEW STRATEGY: 
-    # The module is executed via run_with_spinner. 
-    # Output goes to LOG_FILE.
-    # To show "findings" in the UI, we check the output files OR regex the log for a special marker if needed.
-    # For simplicity, we just show the spinner validation.
-    # Ideally, modules should print summary stats to a specific temporary file or variable?
-    # Let's keep it simple: run module, check if files exist, print rough stats based on file line counts.
-    
-    run_with_spinner "${task_name}" bash modules/${module_script} "${TARGET}" "${output_dir}"
+    run_with_spinner "${task_name}" bash modules/${module_script} "${TARGET}" "${output_dir}" "$@"
     
     # After module finishes, check results and print finding summary
     case $module_script in
@@ -166,17 +154,14 @@ execute_module() {
             count=$(cat "${output_dir}/vapt_${TARGET}_urls_all.txt" 2>/dev/null | wc -l)
             log_finding "$count" "URLs"
             ;;
-        "nuclei_scan.sh")
+        "nuclei_scan.sh"|"nuclei_wayback.sh")
             # This is trickier, let's count vulnerabilities from json
-            count=$(jq '.summary.total_findings // 0' "${output_dir}/vapt_${TARGET}_nuclei_categorized.json" 2>/dev/null)
-            log_finding "${count:-0}" "Vulnerabilities (Nuclei)"
+            count=$(jq '.summary.total_findings // 0' "${output_dir}"/*.json 2>/dev/null | head -n 1)
+            log_finding "${count:-0}" "Vulnerabilities Identified"
             ;;
         "wordpress_scan.sh")
-            # Parsing wpscan output is hard without parsing proper JSON
-            # We can check line count of vuln block or file size
-            # Let's just say "Scan Completed"
             if [ -s "${output_dir}/vapt_${TARGET}_wpscan_all.txt" ]; then
-                log_finding 1 "WordPress Scan Results Generated"
+                log_finding 1 "WordPress Scan Complete"
             fi
             ;;
         *)
@@ -194,6 +179,7 @@ execute_module "Filtering Live Hosts (HTTPX)" "httpx_live_filter.sh" "${RESULTS_
 
 print_banner "Analysis Phase"
 execute_module "Analyzing Technologies" "httpx_analysis.sh" "${RESULTS_DIR}/httpx"
+execute_module "Detecting WAF Behavior" "waf_behavior.sh" "${RESULTS_DIR}/firewall"
 execute_module "Gathering Network Info" "network_info.sh" "${RESULTS_DIR}/network"
 execute_module "Querying DNS Records" "dns_info.sh" "${RESULTS_DIR}/dns"
 execute_module "Detecting Firewalls" "firewall_detection.sh" "${RESULTS_DIR}/firewall"
@@ -206,7 +192,7 @@ execute_module "Spidering (GoSpider)" "spidering.sh" "${RESULTS_DIR}/spidering"
 # Combine all URL sources for advanced scanning
 cat "${RESULTS_DIR}/urls/"*.txt "${RESULTS_DIR}/spidering/"*.txt 2>/dev/null | sort -u > "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
 
-print_banner "Intelligent Route Analysis"
+execute_module "Discovering Parameters & Endpoints" "param_discovery.sh" "${RESULTS_DIR}/urls"
 execute_module "Analyzing Vulnerable Routes (IDOR/SQLi/SSRF/XSS)" "vulnerable_routes.sh" "${RESULTS_DIR}/route_analysis"
 
 # AI-Driven Target Selection for Deep Phases
@@ -219,19 +205,21 @@ if [ "$AI_CHECK_STATUS" -eq 0 ]; then
 fi
 
 print_banner "Active Vulnerability Phase"
-execute_module "Secrets Scanning (TruffleHog)" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
+execute_module "Secrets Scanning (TruffleHog & Vṛthā Scraper)" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
 execute_module "Advanced Fuzzing & Exploitation (FFUF/Dalfox/SQLMap)" "fuzzing.sh" "${RESULTS_DIR}/fuzzing" "tools/wordlists/raft-medium-directories.txt" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt" "$COOKIE"
-execute_module "Running Nuclei Scans" "nuclei_scan.sh" "${RESULTS_DIR}/nuclei"
+execute_module "Running Nuclei Scans (Standard)" "nuclei_scan.sh" "${RESULTS_DIR}/nuclei"
+execute_module "Running Nuclei Scans (Wayback-Enhanced)" "nuclei_wayback.sh" "${RESULTS_DIR}/nuclei"
+execute_module "OWASP ZAP Baseline & Active Scan" "zap_scan.sh" "${RESULTS_DIR}/zap"
 
-execute_module "Specifying WordPress Issues" "wordpress_scan.sh" "${RESULTS_DIR}/wordpress"
+execute_module "Analyzing WordPress Core" "wordpress_scan.sh" "${RESULTS_DIR}/wordpress"
 execute_module "Static Analysis of Plugins (SAST)" "plugin_sast.sh" "${RESULTS_DIR}/wordpress"
-execute_module "Capturing Evidence" "screenshots.sh" "${RESULTS_DIR}/screenshots"
+execute_module "Capturing Evidence (Screenshots)" "screenshots.sh" "${RESULTS_DIR}/screenshots"
 
 print_banner "Reporting Phase"
 run_with_spinner "Building Context" python3 utils/context_builder.py "${TARGET}" "${RESULTS_DIR}"
 
 if [ -n "$OPENROUTER_API_KEY" ] && [ "$OPENROUTER_API_KEY" != "your_openrouter_api_key_here" ] && [ "$AI_CHECK_STATUS" -eq 0 ]; then
-    echo -e "${BLUE}[*] Starting AI Analysis (Red Team Persona)...${NC}"
+    echo -e "${BLUE}[*] Starting AI Analysis (Red Team Persona - Vṛthā v2.1)...${NC}"
     
     # Define output report path
     FINAL_REPORT="${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md"
@@ -247,13 +235,16 @@ fi
 
 # Generate HTML Report
 echo -e "${BLUE}[*] Generating Final HTML Report...${NC}"
-python3 utils/report_generator.py "${TARGET}" "${RESULTS_DIR}" 2>/dev/null || echo -e "${YELLOW}HTML report generation not yet implemented${NC}"
+python3 utils/report_generator.py "${TARGET}" "${RESULTS_DIR}" 2>>"${LOG_FILE}" || echo -e "${YELLOW}HTML report generation error${NC}"
 
-echo -e "\n${GREEN}${BOLD}Scan Completed Successfully!${NC}"
+echo -e "\n${GREEN}${BOLD}Vṛthā VAPT Scan Completed Successfully!${NC}"
 echo -e "Results Directory: ${BLUE}${RESULTS_DIR}${NC}"
 if [ -f "${RESULTS_DIR}/final_report/vapt_${TARGET}_report.html" ]; then
     echo -e "HTML Report: ${BLUE}${RESULTS_DIR}/final_report/vapt_${TARGET}_report.html${NC}"
 fi
 if [ -f "${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md" ]; then
-    echo -e "AI Report: ${BLUE}${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md${NC}"
+    echo -e "AI Report (Markdown): ${BLUE}${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.md${NC}"
+fi
+if [ -f "${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.pdf" ]; then
+    echo -e "Professional PDF: ${BLUE}${RESULTS_DIR}/final_report/vapt_${TARGET}_ai_report.pdf${NC}"
 fi

@@ -19,12 +19,13 @@ EMAIL_REGEX = r"[a-zA-Z0-9._%+-]+@(?!example\.com)(?!.*\.(png|jpg|jpeg|gif|css|j
 
 # Comprehensive secret patterns
 KEY_PATTERNS = {
+    # API Keys and Tokens
     "AWS Access Key": r"AKIA[0-9A-Z]{16}",
     "AWS Secret Key": r"(?i)aws(.{0,20})?['\"][0-9a-zA-Z/+]{40}['\"]",
     "Google API Key": r"AIza[0-9A-Za-z\\-_]{35}",
     "Google OAuth": r"[0-9]+-[0-9A-Za-z_]{32}\.apps\.googleusercontent\.com",
     "GitHub Token": r"gh[pousr]_[0-9a-zA-Z]{36}",
-    "Generic API Key": r"(?i)(?:api[_-]?key|apikey|secret[_-]?key|access[_-]?token)[\s=:\"\'\`]{1,5}([a-zA-Z0-9\-_]{20,})",
+    "Generic API Key": r"(?i)(?:api[_-]?key|apikey|secret[_-]?key|access[_-]?token)[\s=:\"\'`]{1,5}([a-zA-Z0-9\-_]{20,})",
     "Private Key Block": r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
     "JWT Token": r"eyJ[A-Za-z0-9-_=]+\.eyJ[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*",
     "Slack Token": r"xox[baprs]-[0-9]{10,13}-[0-9]{10,13}-[a-zA-Z0-9]{24,}",
@@ -38,19 +39,59 @@ KEY_PATTERNS = {
     "Mailgun API Key": r"key-[0-9a-f]{32}",
     "Heroku API Key": r"(?i)heroku.*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
     "PayPal Braintree Token": r"access_token\$production\$[0-9a-z]{16}\$[0-9a-f]{32}",
+    
+    # Network and Infrastructure
     "Internal IP": r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}",
     "Potential Endpoint": r"(['\"])/(?:api|v1|v2|v3|admin|config|debug|setup|upload|download)/[a-zA-Z0-9\-_/.]{3,50}(?:['\"])",
+    
+    # WordPress Specific
     "WP Config leak": r"define\(['\"]DB_(?:NAME|USER|PASSWORD|HOST)['\"]",
     "WordPress Salt/Key": r"define\(['\"](?:AUTH|SECURE_AUTH|LOGGED_IN|NONCE)_(?:KEY|SALT)['\"]",
     "WordPress Author Name": r"(?i)author_name[\"']?\s*:\s*[\"']([^\"']+)[\"']",
     "WordPress REST User": r"/wp-json/wp/v2/users/\d+",
+    "WordPress REST API": r"/wp-json/wp/v2/[a-zA-Z0-9\-_]+",
     "Session Cookie": r"(?i)(?:PHP|WP|JSESS|SESSION)ID=[a-zA-Z0-9\-_]{16,}",
+    
+    # XSS Sinks
     "DOM XSS Sink: innerHTML": r"\.innerHTML\s*=",
     "DOM XSS Sink: document.write": r"document\.write\s*\(",
     "DOM XSS Sink: eval": r"eval\s*\(",
     "DOM XSS Sink: insertAdjacentHTML": r"\.insertAdjacentHTML\s*\(",
     "DOM XSS Sink: outerHTML": r"\.outerHTML\s*=",
-    "WordPress REST API": r"/wp-json/wp/v2/[a-zA-Z0-9\-_]+",
+    
+    # Hashes
+    "MD5 Hash": r"(?<![a-f0-9])[a-f0-9]{32}(?![a-f0-9])",
+    "SHA-1 Hash": r"(?<![a-f0-9])[a-f0-9]{40}(?![a-f0-9])",
+    "SHA-256 Hash": r"(?<![a-f0-9])[a-f0-9]{64}(?![a-f0-9])",
+    "Bcrypt Hash": r"\$2[ayb]\$[0-9]{2}\$[./A-Za-z0-9]{53}",
+    
+    # Source Code Leaks
+    "Source Code Leak (PHP)": r"<\?php[\s\S]{10,}?\?>",
+    "Source Code Leak (Python)": r"(?m)^(?:import|from)\s+[a-zA-Z0-9_.]+(?:\s+import\s+)",
+    
+    # PII - Personal Identifiable Information
+    "Person Name": r"(?i)(?:name|author|user|contact|by)[\"':\s]+([A-Z][a-z]{2,15}\s+(?:[A-Z]\.?\s+)?[A-Z][a-z]{2,20})",
+    "Username Pattern": r"(?i)(?:username|user_name|login|userid)[\"':\s=]+([a-zA-Z0-9_\-\.]{3,30})",
+    "Author Name (WP)": r"(?i)(?:author|by|posted by|written by)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)",
+    
+    # Phone Numbers
+    "Phone Number (US)": r"(?:\+1[-.\s]?)?\(?[2-9]\d{2}\)?[-.\s]?\d{3}[-.\s]?\d{4}",
+    "Phone Number (International)": r"\+[1-9]\d{0,2}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}",
+    "Phone Number (India)": r"(?:\+91[-.\s]?)?[6-9]\d{9}",
+    
+    # Financial Data
+    "Credit Card (Visa)": r"4[0-9]{12}(?:[0-9]{3})?",
+    "Credit Card (MasterCard)": r"5[1-5][0-9]{14}",
+    "Credit Card (AMEX)": r"3[47][0-9]{13}",
+    "SSN (US)": r"(?!000|666|9\d{2})\d{3}[-\s]?(?!00)\d{2}[-\s]?(?!0000)\d{4}",
+    
+    # Address/Location
+    "Zip Code (US)": r"\b\d{5}(?:-\d{4})?\b",
+    "IP Address (Public)": r"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b",
+    
+    # Passwords and Secrets in Code
+    "Password in Code": r"(?i)(?:password|passwd|pwd|secret)[\"':\s=]+[\"']([^\"'\s]{4,50})[\"']",
+    "Hardcoded Credentials": r"(?i)(?:admin|root|user)[:=][\"']?([a-zA-Z0-9!@#$%^&*]{4,30})[\"']?",
 }
 
 def parse_html(content):

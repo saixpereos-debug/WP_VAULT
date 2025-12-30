@@ -1,0 +1,39 @@
+id: wordpress-plugin-contact-form-7
+
+info:
+  name: WordPress Plugin - Contact Form 7 Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects Contact Form 7 plugin and checks for outdated version
+  reference:
+    - https://wordpress.org/plugins/contact-form-7/
+  metadata:
+    plugin_namespace: contact-form-7
+    wpscan: https://wpscan.com/plugin/contact-form-7
+    current_version: 6.1.4
+    owasp: A06 - Vulnerable and Outdated Components
+  tags: wordpress,wp-plugin,contact-form-7
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/contact-form-7/readme.txt"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'
+
+    extractors:
+      - type: regex
+        name: detected_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'

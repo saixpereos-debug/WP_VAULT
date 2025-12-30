@@ -1,0 +1,45 @@
+id: wordpress-outdated-core
+
+info:
+  name: WordPress Outdated Core Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects WordPress core version and checks if outdated
+  reference:
+    - https://owasp.org/Top10/A06_2021-Vulnerable_and_Outdated_Components/
+  classification:
+    cwe-id: CWE-1104
+  metadata:
+    owasp: A06:2021 - Vulnerable and Outdated Components
+  tags: wordpress,outdated,version,owasp-a06
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-includes/version.php"
+      - "{{BaseURL}}/readme.html"
+      - "{{BaseURL}}/feed/"
+      - "{{BaseURL}}/"
+
+    stop-at-first-match: false
+    matchers-condition: or
+
+    matchers:
+      - type: regex
+        part: body
+        regex:
+          - 'wp_version\s*=\s*["\']([0-9.]+)["\']'
+          - 'Version\s+([0-9.]+)'
+          - '<generator>https://wordpress\.org/\?v=([0-9.]+)</generator>'
+          - 'content="WordPress\s+([0-9.]+)"'
+
+    extractors:
+      - type: regex
+        name: wordpress_version
+        part: body
+        group: 1
+        regex:
+          - 'wp_version\s*=\s*["\']([0-9.]+)["\']'
+          - 'Version\s+([0-9.]+)'
+          - '<generator>https://wordpress\.org/\?v=([0-9.]+)</generator>'
+          - 'content="WordPress\s+([0-9.]+)"'

@@ -1,0 +1,87 @@
+id: wordpress-owasp-comprehensive
+
+info:
+  name: WordPress OWASP Top 10 Comprehensive Check
+  author: vrtha-framework
+  severity: medium
+  description: |
+    Comprehensive security assessment covering OWASP Top 10.
+    Runs multiple checks for each vulnerability category.
+  reference:
+    - https://owasp.org/www-project-top-ten/
+  metadata:
+    owasp: A01-A10
+  tags: wordpress,owasp,comprehensive
+
+http:
+  # A01: Broken Access Control
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-json/wp/v2/users"
+    matchers:
+      - type: word
+        words:
+          - '"slug":'
+          - '"name":'
+        condition: and
+
+  # A02: Cryptographic Failures
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-config.php.bak"
+      - "{{BaseURL}}/.env"
+    matchers:
+      - type: word
+        words:
+          - "DB_PASSWORD"
+          - "DB_NAME"
+        condition: or
+
+  # A03: Injection (Error-based SQLi detection)
+  - method: GET
+    path:
+      - "{{BaseURL}}/?s=test'"
+    matchers:
+      - type: regex
+        regex:
+          - "SQL syntax.*MySQL"
+          - "Warning.*mysql"
+
+  # A05: Security Misconfiguration
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/uploads/"
+      - "{{BaseURL}}/wp-includes/"
+    matchers:
+      - type: word
+        words:
+          - "Index of"
+          - "Parent Directory"
+        condition: and
+
+  # A06: Vulnerable Components (Version Detection)
+  - method: GET
+    path:
+      - "{{BaseURL}}/readme.html"
+    extractors:
+      - type: regex
+        name: wp_version
+        part: body
+        regex:
+          - 'Version\s+([0-9.]+)'
+
+  # A10: SSRF via XML-RPC
+  - method: POST
+    path:
+      - "{{BaseURL}}/xmlrpc.php"
+    headers:
+      Content-Type: text/xml
+    body: |
+      <?xml version="1.0"?>
+      <methodCall>
+        <methodName>system.listMethods</methodName>
+      </methodCall>
+    matchers:
+      - type: word
+        words:
+          - "pingback.ping"

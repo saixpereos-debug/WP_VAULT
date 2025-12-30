@@ -1,4 +1,4 @@
-# Vṛthā (वृथा) - Advanced WordPress VAPT Framework v2.0
+# Vṛthā (वृथा) - Advanced Vṛthā VAPT Framework v2.0
 
 ![Vrtha Banner](utils/banner.py)
 
@@ -60,8 +60,8 @@ Traditional scanners often leave security professionals with mountains of discon
 ### Quick Start
 ```bash
 # Clone the repository
-git clone https://github.com/saixpereos-debug/WP_VAULT.git
-cd WP_VAULT
+git clone https://github.com/saixpereos-debug/Vṛthā.git
+cd Vṛthā
 
 # Run the automated installer
 chmod +x install.sh

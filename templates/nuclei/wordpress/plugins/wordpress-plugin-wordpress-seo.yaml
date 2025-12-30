@@ -1,0 +1,39 @@
+id: wordpress-plugin-wordpress-seo
+
+info:
+  name: WordPress Plugin - Yoast SEO &#8211; Advanced SEO with real-time guidance and built-in AI Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects Yoast SEO &#8211; Advanced SEO with real-time guidance and built-in AI plugin and checks for outdated version
+  reference:
+    - https://wordpress.org/plugins/wordpress-seo/
+  metadata:
+    plugin_namespace: wordpress-seo
+    wpscan: https://wpscan.com/plugin/wordpress-seo
+    current_version: 26.6
+    owasp: A06 - Vulnerable and Outdated Components
+  tags: wordpress,wp-plugin,wordpress-seo
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/wordpress-seo/readme.txt"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'
+
+    extractors:
+      - type: regex
+        name: detected_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'

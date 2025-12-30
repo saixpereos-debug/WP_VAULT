@@ -4,7 +4,7 @@
 # Copy this file to config.sh and add your API keys.
 
 # OpenRouter API
-OPENROUTER_API_KEY="your_openrouter_api_key_here"
+OPENROUTER_API_KEY="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"
 OPENROUTER_MODEL="qwen/qwen-2.5-coder-32b-instruct"
 # Resolve path relative to this config file
 SEC_AI_PATH="$(dirname "${BASH_SOURCE[0]}")/../sec_ai/main.py"

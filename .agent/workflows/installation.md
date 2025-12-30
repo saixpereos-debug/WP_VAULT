@@ -1,5 +1,5 @@
 ---
-description: Installation and Setup of WordPress VAPT Framework
+description: Installation and Setup of Vṛthā VAPT Framework
 ---
 
 # Installation and Setup

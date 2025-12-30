@@ -1,0 +1,58 @@
+id: wordpress-logging-monitoring
+
+info:
+  name: WordPress Logging and Monitoring Failures
+  author: vrtha-framework
+  severity: info
+  description: Detects exposed log files and missing security headers
+  reference:
+    - https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/
+  classification:
+    cwe-id: CWE-778
+  metadata:
+    owasp: A09:2021 - Security Logging and Monitoring Failures
+  tags: wordpress,logging,headers,owasp-a09
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/debug.log"
+      - "{{BaseURL}}/debug.log"
+      - "{{BaseURL}}/error.log"
+      - "{{BaseURL}}/wp-content/uploads/debug.log"
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "PHP Notice"
+          - "PHP Warning"
+          - "PHP Fatal error"
+          - "Stack trace"
+          - "WordPress database error"
+        condition: or
+
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        name: php_error
+        part: body
+        regex:
+          - 'PHP (?:Notice|Warning|Fatal error):\s+(.+)'
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/"
+
+    matchers:
+      - type: dsl
+        name: missing_security_headers
+        dsl:
+          - "!contains(tolower(all_headers), 'x-frame-options')"
+          - "!contains(tolower(all_headers), 'x-content-type-options')"
+          - "!contains(tolower(all_headers), 'content-security-policy')"
+        condition: or

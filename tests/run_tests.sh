@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Automated Test Suite for WordPress VAPT Framework
+# Automated Test Suite for Vṛthā VAPT Framework
 # Tests every module with expected outputs and validates logic flow
 
 set -e
@@ -27,7 +27,7 @@ export LOG_FILE="${TEST_DIR}/test.log"
 mkdir -p "${RESULTS_DIR}"
 
 echo "=========================================="
-echo "WordPress VAPT Framework - Test Suite"
+echo "Vṛthā VAPT Framework - Test Suite"
 echo "=========================================="
 echo ""
 

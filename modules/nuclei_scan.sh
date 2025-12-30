@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Nuclei scanning module
+# Nuclei scanning module - Vṛthā v2.1
+# Enhanced with OWASP Top 10 template coverage
 
 TARGET=$1
 OUTPUT_DIR=$2
@@ -30,23 +31,67 @@ echo "  Scanning ${TARGET_COUNT} targets with Nuclei..." >> "${LOG_FILE}"
 # Update Nuclei templates (silently)
 ${NUCLEI_PATH} -update-templates >/dev/null 2>&1
 
-# Custom WordPress templates
-${NUCLEI_PATH} -list "${URL_LIST}" -t templates/nuclei/ ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_nuclei_wordpress_custom.txt" -json >/dev/null 2>&1 || true
+# ============================================
+# OWASP Top 10 Custom Templates (2021 + 2025)
+# ============================================
+OWASP_TEMPLATES_DIR="templates/nuclei/owasp"
 
-# Official WordPress templates
+if [ -d "${OWASP_TEMPLATES_DIR}" ]; then
+    echo "Running custom OWASP Top 10 templates..." >> "${LOG_FILE}"
+    
+    # A01: Broken Access Control
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a01-broken-access-control/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a01.txt" -json >/dev/null 2>&1 || true
+    
+    # A02: Cryptographic Failures
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a02-cryptographic-failures/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a02.txt" -json >/dev/null 2>&1 || true
+    
+    # A03: Injection
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a03-injection/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a03.txt" -json >/dev/null 2>&1 || true
+    
+    # A04: Insecure Design
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a04-insecure-design/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a04.txt" -json >/dev/null 2>&1 || true
+    
+    # A05: Security Misconfiguration
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a05-security-misconfiguration/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a05.txt" -json >/dev/null 2>&1 || true
+    
+    # A06: Outdated Components
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a06-outdated-components/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a06.txt" -json >/dev/null 2>&1 || true
+    
+    # A07: Auth Failures
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a07-auth-failures/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a07.txt" -json >/dev/null 2>&1 || true
+    
+    # A08: Integrity Failures
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a08-integrity-failures/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a08.txt" -json >/dev/null 2>&1 || true
+    
+    # A09: Logging/Monitoring
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a09-logging-monitoring/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a09.txt" -json >/dev/null 2>&1 || true
+    
+    # A10: SSRF
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${OWASP_TEMPLATES_DIR}/a10-ssrf/" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_a10.txt" -json >/dev/null 2>&1 || true
+fi
+
+# ============================================
+# Official and Community Templates
+# ============================================
+
+# Custom WordPress templates (legacy)
+${NUCLEI_PATH} -list "${URL_LIST}" -t templates/nuclei/ -exclude templates/nuclei/owasp/ ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_nuclei_wordpress_custom.txt" -json >/dev/null 2>&1 || true
+
+# Official WordPress templates 
 ${NUCLEI_PATH} -list "${URL_LIST}" -t ${WORDPRESS_TEMPLATES} ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_nuclei_wordpress_official.txt" -json >/dev/null 2>&1 || true
 
-# OWASP Top 10 
-echo "Running Nuclei OWASP Top 10..." >> "${LOG_FILE}"
-${NUCLEI_PATH} -list "${URL_LIST}" -tags owasp ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_nuclei_owasp.txt" -json >/dev/null 2>&1 || true
+# ============================================
+# Comprehensive Multi-Stage OWASP Assessment
+# ============================================
+COMPREHENSIVE_TEMPLATE="templates/nuclei/wordpress/wordpress-comprehensive-security-check.yaml"
+if [ -f "${COMPREHENSIVE_TEMPLATE}" ]; then
+    echo "Running comprehensive 15-stage OWASP assessment..." >> "${LOG_FILE}"
+    ${NUCLEI_PATH} -list "${URL_LIST}" -t "${COMPREHENSIVE_TEMPLATE}" ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_owasp_comprehensive.txt" -json >/dev/null 2>&1 || true
+fi
 
-# Wordfence CVEs (Tag based search if available or specific path)
-# Assuming 'wordfence' tag exists or similar in default templates, or using general CVEs
-echo "Running Nuclei CVEs..." >> "${LOG_FILE}"
+# CVE templates (critical/high only)
+echo "Running Nuclei CVE detection..." >> "${LOG_FILE}"
 ${NUCLEI_PATH} -list "${URL_LIST}" -tags cve,wordpress -severity critical,high ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_nuclei_cves.txt" -json >/dev/null 2>&1 || true
-
-# General templates
-${NUCLEI_PATH} -list "${URL_LIST}" -exclude-tags wordpress ${NUCLEI_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_nuclei_general.txt" -json >/dev/null 2>&1 || true
 
 # Parse and categorize
 python3 -c "

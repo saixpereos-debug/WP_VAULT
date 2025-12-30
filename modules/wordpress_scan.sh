@@ -30,7 +30,6 @@ scan_wordpress() {
     fi
     
     # Build aggressive 2025-standard command
-    # Flags based on user checklist: --enumerate u,ap,at,tt --plugins-detection aggressive --max-threads 20 --stealthy --force --detection-mode mixed
     local cmd="${WPSCAN_PATH} --url \"${protocol}://${domain}\" --enumerate u,ap,at,tt --plugins-detection aggressive --max-threads 20 --stealthy --force --detection-mode mixed --disable-tls-checks --ignore-main-redirect --output \"${output_file}\" --format cli"
     
     # Add API token if present
@@ -40,14 +39,25 @@ scan_wordpress() {
     
     # Run wpscan with error handling
     echo "  Running Aggressive WPScan on ${protocol}://${domain}..." >> "${LOG_FILE}"
-    eval "$cmd" >> "${OUTPUT_DIR}/wpscan_debug.log" 2>&1
+    
+    # Execute with a timeout and capture errors
+    timeout 600 bash -c "$cmd" >> "${OUTPUT_DIR}/wpscan_debug.log" 2>&1
     
     local exit_code=$?
-    if [ $exit_code -ne 0 ]; then
+    if [ $exit_code -eq 124 ]; then
+        echo "  WPScan timed out for $domain" >> "${LOG_FILE}"
+        echo "[!] WPScan Timeout for $domain after 10 minutes." > "${output_file}"
+    elif [ $exit_code -ne 0 ]; then
         echo "  WPScan failed for $domain (exit code: $exit_code). Check wpscan_debug.log" >> "${LOG_FILE}"
-        tail -n 5 "${OUTPUT_DIR}/wpscan_debug.log" >> "${LOG_FILE}" 2>&1
+        echo "[!] WPScan Failed for $domain (Exit Code: $exit_code)" > "${output_file}"
+        tail -n 20 "${OUTPUT_DIR}/wpscan_debug.log" >> "${output_file}"
     else
         echo "  WPScan completed for $domain" >> "${LOG_FILE}"
+        if [ ! -s "${output_file}" ]; then
+            echo "[!] WPScan completed but output file is empty. Check debug.log" >> "${LOG_FILE}"
+            echo "[!] WPScan returned no results for $domain" > "${output_file}"
+            cat "${OUTPUT_DIR}/wpscan_debug.log" >> "${output_file}"
+        fi
     fi
 
     # --- 2025 Checklist: Advanced Discovery Phase (Rules 1-3) ---

@@ -1,0 +1,39 @@
+id: wordpress-plugin-google-site-kit
+
+info:
+  name: WordPress Plugin - Site Kit by Google &#8211; Analytics, Search Console, AdSense, Speed Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects Site Kit by Google &#8211; Analytics, Search Console, AdSense, Speed plugin and checks for outdated version
+  reference:
+    - https://wordpress.org/plugins/google-site-kit/
+  metadata:
+    plugin_namespace: google-site-kit
+    wpscan: https://wpscan.com/plugin/google-site-kit
+    current_version: 1.168.0
+    owasp: A06 - Vulnerable and Outdated Components
+  tags: wordpress,wp-plugin,google-site-kit
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/google-site-kit/readme.txt"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'
+
+    extractors:
+      - type: regex
+        name: detected_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'

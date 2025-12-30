@@ -1,0 +1,39 @@
+id: wordpress-plugin-wpforms-lite
+
+info:
+  name: WordPress Plugin - WPForms &#8211; Easy Form Builder for WordPress &#8211; Contact Forms, Payment Forms, Surveys, &amp; More Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects WPForms &#8211; Easy Form Builder for WordPress &#8211; Contact Forms, Payment Forms, Surveys, &amp; More plugin and checks for outdated version
+  reference:
+    - https://wordpress.org/plugins/wpforms-lite/
+  metadata:
+    plugin_namespace: wpforms-lite
+    wpscan: https://wpscan.com/plugin/wpforms-lite
+    current_version: 1.9.8.7
+    owasp: A06 - Vulnerable and Outdated Components
+  tags: wordpress,wp-plugin,wpforms-lite
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/wpforms-lite/readme.txt"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'
+
+    extractors:
+      - type: regex
+        name: detected_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'

@@ -19,7 +19,7 @@ BANNER = f"""{BLUE}{BOLD}
 ╚██╗ ██╔╝██╔══██╗   ██║   ██╔══██║██╔══██║
  ╚████╔╝ ██║  ██║   ██║   ██║  ██║██║  ██║
   ╚═══╝  ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ {NC}{CYAN}
-   Advanced WordPress VAPT Framework v2.0
+   Advanced Vṛthā VAPT Framework v2.0
 {NC}{YELLOW}   "Offensive Excellence for Defensive Strength"
 {NC}------------------------------------------------"""
 

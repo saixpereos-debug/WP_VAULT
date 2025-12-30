@@ -1,0 +1,80 @@
+id: wordpress-xmlrpc-abuse
+
+info:
+  name: WordPress XML-RPC Abuse Detection
+  author: vrtha-framework
+  severity: medium
+  description: Detects XML-RPC exposure and potential abuse vectors (brute force, DDoS amplification)
+  reference:
+    - https://owasp.org/Top10/A04_2021-Insecure_Design/
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L
+    cvss-score: 6.5
+    cwe-id: CWE-307
+  metadata:
+    owasp: A04:2021 - Insecure Design
+  tags: wordpress,xmlrpc,brute-force,owasp-a04
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/xmlrpc.php"
+    headers:
+      Content-Type: text/xml
+    body: |
+      <?xml version="1.0" encoding="utf-8"?>
+      <methodCall>
+        <methodName>system.listMethods</methodName>
+        <params></params>
+      </methodCall>
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "wp.getUsersBlogs"
+          - "pingback.ping"
+          - "system.multicall"
+        condition: or
+
+    extractors:
+      - type: regex
+        name: available_methods
+        part: body
+        regex:
+          - '<string>([a-zA-Z.]+)</string>'
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/xmlrpc.php"
+    headers:
+      Content-Type: text/xml
+    body: |
+      <?xml version="1.0" encoding="utf-8"?>
+      <methodCall>
+        <methodName>system.multicall</methodName>
+        <params>
+          <param><value><array><data>
+            <value><struct>
+              <member><name>methodName</name><value><string>wp.getUsersBlogs</string></value></member>
+              <member><name>params</name><value><array><data>
+                <value><string>admin</string></value>
+                <value><string>test123</string></value>
+              </data></array></value></member>
+            </struct></value>
+          </data></array></value></param>
+        </params>
+      </methodCall>
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Incorrect username or password"
+          - "isAdmin"
+        condition: or

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Vṛthā Installer Script
-# Installs dependencies and tools for the Vṛthā - Advanced WordPress VAPT Framework
+# Vṛthā VAPT Framework Installer Script
+# Installs dependencies and tools for the Vṛthā - Advanced VAPT Framework
 # 
 # Description:
 # This script automates the setup of the Vṛthā framework. It handles:

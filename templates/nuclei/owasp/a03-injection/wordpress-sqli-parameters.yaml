@@ -1,0 +1,48 @@
+id: wordpress-sqli-parameters
+
+info:
+  name: WordPress SQL Injection Detection
+  author: vrtha-framework
+  severity: critical
+  description: Tests common WordPress parameters for SQL injection vulnerabilities
+  reference:
+    - https://owasp.org/Top10/A03_2021-Injection/
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+    cvss-score: 9.8
+    cwe-id: CWE-89
+  metadata:
+    owasp: A03:2021 - Injection
+  tags: wordpress,sqli,injection,owasp-a03,critical
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?p=1'"
+      - "{{BaseURL}}/?page_id=1'"
+      - "{{BaseURL}}/?cat=1'"
+      - "{{BaseURL}}/?s={{url_encode('test\\' OR 1=1--')}}"
+      - "{{BaseURL}}/wp-admin/admin-ajax.php?action=test&id=1'"
+
+    stop-at-first-match: true
+    matchers-condition: or
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "You have an error in your SQL syntax"
+          - "mysql_fetch"
+          - "Warning: mysql"
+          - "Unclosed quotation mark"
+          - "SQLSTATE["
+          - "syntax error"
+        condition: or
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)sql\s*syntax.*mysql'
+          - '(?i)valid\s*mysql\s*result'
+          - '(?i)mysqlnd\s*cannot'
+          - '(?i)mysqli?_\w+\(\)'

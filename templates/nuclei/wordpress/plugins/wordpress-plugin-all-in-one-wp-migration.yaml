@@ -1,0 +1,39 @@
+id: wordpress-plugin-all-in-one-wp-migration
+
+info:
+  name: WordPress Plugin - All-in-One WP Migration and Backup Detection
+  author: vrtha-framework
+  severity: info
+  description: Detects All-in-One WP Migration and Backup plugin and checks for outdated version
+  reference:
+    - https://wordpress.org/plugins/all-in-one-wp-migration/
+  metadata:
+    plugin_namespace: all-in-one-wp-migration
+    wpscan: https://wpscan.com/plugin/all-in-one-wp-migration
+    current_version: 7.101
+    owasp: A06 - Vulnerable and Outdated Components
+  tags: wordpress,wp-plugin,all-in-one-wp-migration
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/plugins/all-in-one-wp-migration/readme.txt"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        part: body
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'
+
+    extractors:
+      - type: regex
+        name: detected_version
+        part: body
+        group: 1
+        regex:
+          - '(?i)Stable.tag:\s?([\w.]+)'

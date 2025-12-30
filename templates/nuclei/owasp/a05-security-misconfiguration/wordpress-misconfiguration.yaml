@@ -1,0 +1,61 @@
+id: wordpress-security-misconfiguration
+
+info:
+  name: WordPress Security Misconfiguration
+  author: vrtha-framework
+  severity: medium
+  description: Detects common WordPress security misconfigurations (debug mode, directory listing, exposed files)
+  reference:
+    - https://owasp.org/Top10/A05_2021-Security_Misconfiguration/
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N
+    cvss-score: 5.3
+    cwe-id: CWE-16
+  metadata:
+    owasp: A05:2021 - Security Misconfiguration
+  tags: wordpress,misconfiguration,debug,owasp-a05
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-content/uploads/"
+      - "{{BaseURL}}/wp-includes/"
+      - "{{BaseURL}}/wp-content/plugins/"
+      - "{{BaseURL}}/wp-content/themes/"
+      - "{{BaseURL}}/readme.html"
+      - "{{BaseURL}}/license.txt"
+      - "{{BaseURL}}/wp-admin/install.php"
+
+    stop-at-first-match: false
+    matchers-condition: or
+
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "Index of"
+          - "Parent Directory"
+          - "<title>Directory listing"
+        condition: or
+
+      - type: word
+        part: body
+        name: readme_exposed
+        words:
+          - "WordPress"
+          - "semantic personal publishing"
+
+      - type: word
+        part: body
+        name: install_accessible
+        words:
+          - "Welcome to WordPress"
+          - "wp-admin/setup-config.php"
+
+    extractors:
+      - type: regex
+        name: wp_version
+        part: body
+        group: 1
+        regex:
+          - 'Version\s+([0-9.]+)'

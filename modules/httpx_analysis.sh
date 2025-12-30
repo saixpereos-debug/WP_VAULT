@@ -21,7 +21,7 @@ echo "Running HTTPX technology detection and analysis..." >> "${LOG_FILE}"
 
 # Run optimized httpx with all flags in one call
 ${HTTPX_PATH} -list "${URL_LIST}" \
-    -sc -cl -location -title -td -server \
+    -sc -cl -location -title -td -favicon -server \
     -mc 200,301,302,403,404,500 \
     -path "/admin,/wp-admin,/wp-login.php,/backup,/old,/test,/dev,/.env,/.git" \
     -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_combined.json" >> "${LOG_FILE}" 2>&1
