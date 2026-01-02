@@ -85,14 +85,18 @@ check_api_keys() {
                 AI_CHECK_STATUS=0
                 return 0
             else
-                echo -e "${RED}[!] API Connectivity Check Failed (Possible 401 Unauthorized or Network Error).${NC}"
-                read -p "   Would you like to re-enter your OpenRouter API Key? (y/N): " re_enter
+
+                echo -e "${RED}[!] API Connectivity Check Failed: 401 Unauthorized / Invalid Key.${NC}"
+                echo -e "    The key stored in config/config.sh appears to be invalid or expired."
+                read -p "    Would you like to update it now? (y/N): " re_enter
                 if [[ "$re_enter" =~ ^[Yy]$ ]]; then
                     OPENROUTER_API_KEY=""
                     retry_count=$((retry_count + 1))
                 else
-                    echo -e "${YELLOW}[-] Proceeding without AI features.${NC}"
-                    OPENROUTER_API_KEY=""
+                    echo -e "${YELLOW}[-] Proceeding scan without AI features (Key preserved in config).${NC}"
+                    # Do NOT clear the key variable here, so we don't prompt again in this session logic if we looped, 
+                    # but we mark status as failed effectively by not setting AI_CHECK_STATUS=0 yet.
+                    # Actually, we should just return 0 but leave AI_CHECK_STATUS=1
                     return 0
                 fi
             fi

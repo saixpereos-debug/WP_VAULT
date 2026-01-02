@@ -25,7 +25,8 @@ scan_wordpress() {
     else
          echo "  [?] No obvious WordPress fingerprints on $domain. Running WPScan in check mode..." >> "${LOG_FILE}"
          # Fallback: Run WPScan in detection mode only
-         if ${WPSCAN_PATH} --url "https://${domain}" --stealthy --detection-mode aggressive -e u1-1 --no-banner > "${OUTPUT_DIR}/wpscan_check.log" 2>&1; then
+         # Added --disable-tls-checks and --connect-timeout
+         if ${WPSCAN_PATH} --url "https://${domain}" --stealthy --detection-mode aggressive -e u1-1 --no-banner --disable-tls-checks --connect-timeout 30 --random-user-agent > "${OUTPUT_DIR}/wpscan_check.log" 2>&1; then
              if grep -qi "The remote website is up, but does not seem to be running WordPress" "${OUTPUT_DIR}/wpscan_check.log"; then
                  echo "  [!] WPScan confirmed: Not WordPress." >> "${LOG_FILE}"
                  return 0
@@ -55,7 +56,7 @@ scan_wordpress() {
     fi
     
     # Build aggressive 2025-standard command
-    local cmd="${WPSCAN_PATH} --url ${protocol}://${domain} --enumerate u,ap,at,tt --passwords /usr/share/wordlists/rockyou.txt --plugins-detection aggressive --max-threads 20 --stealthy --verbose --force --detection-mode mixed --disable-tls-checks --ignore-main-redirect --output \"${output_file}\""
+    local cmd="${WPSCAN_PATH} --url ${protocol}://${domain} --enumerate u,ap,at,tt --passwords /opt/tools/wordlists/common/rockyou.txt --plugins-detection aggressive --max-threads 20 --stealthy --verbose --force --detection-mode mixed --disable-tls-checks --ignore-main-redirect --no-update --output \"${output_file}\""
     
     # Add API token if present
     if [ -n "$WPSCAN_API_TOKEN" ] && [ "$WPSCAN_API_TOKEN" != "your_wpscan_api_token_here" ]; then

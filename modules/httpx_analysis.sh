@@ -8,23 +8,42 @@ URLS_FILE="${RESULTS_DIR}/urls/vapt_${TARGET}_urls_all.txt"
 
 # Ensure output directory exists
 mkdir -p "${OUTPUT_DIR}"
-
 # Prepare list of URLs for httpx
 URL_LIST="${OUTPUT_DIR}/urls_to_scan.txt"
-if [ -f "${URLS_FILE}" ]; then
-    cat "${URLS_FILE}" > "${URL_LIST}"
+# OPTIMIZATION: Use live_hosts.txt (roots) instead of ALL URLs for heavy tech detection
+# Checking technologies on 10,000 deep URLs is redundant and slow.
+LIVE_HOSTS_FILE="${RESULTS_DIR}/httpx/live_hosts.txt"
+
+if [ -s "${LIVE_HOSTS_FILE}" ]; then
+    cat "${LIVE_HOSTS_FILE}" > "${URL_LIST}"
+    echo "  Using Live Hosts (Roots) for Tech Detection to save time..." >> "${LOG_FILE}"
+elif [ -f "${URLS_FILE}" ]; then
+    # Fallback to head 100 if no live hosts file (shouldn't happen in pipeline)
+    head -n 100 "${URLS_FILE}" > "${URL_LIST}"
+    echo "  Using Top 100 URLs for Tech Detection..." >> "${LOG_FILE}"
 else
     echo "https://${TARGET}" > "${URL_LIST}"
 fi
 
-echo "Running HTTPX technology detection and analysis..." >> "${LOG_FILE}"
-
-# Run optimized httpx with all flags in one call
+# Run optimized httpx for Tech Detection (Roots Only)
+# Removed -path probing from THIS step to speed up tech detection
+echo "  Phase 1: Detecting Technologies..." >> "${LOG_FILE}"
 ${HTTPX_PATH} -list "${URL_LIST}" \
     -sc -cl -location -title -td -favicon -server \
     -mc 200,301,302,403,404,500 \
+    -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_tech.json" >> "${LOG_FILE}" 2>&1
+
+# Phase 2: Probe Interesting Paths (Roots Only)
+# This is much faster than running probing on ALL discovered URLs
+echo "  Phase 2: Probing Interesting Paths..." >> "${LOG_FILE}"
+${HTTPX_PATH} -list "${URL_LIST}" \
     -path "/admin,/wp-admin,/wp-login.php,/backup,/old,/test,/dev,/.env,/.git" \
-    -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_combined.json" >> "${LOG_FILE}" 2>&1
+    -mc 200,301,302,403 \
+    -sc -title \
+    -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_probes.json" >> "${LOG_FILE}" 2>&1
+
+# Combine results for Python script compatibility
+cat "${OUTPUT_DIR}/vapt_${TARGET}_httpx_tech.json" "${OUTPUT_DIR}/vapt_${TARGET}_httpx_probes.json" > "${OUTPUT_DIR}/vapt_${TARGET}_httpx_combined.json"
 
 # Process and extract technologies using Python
 # Process and extract technologies and interesting URLs using Python

@@ -68,10 +68,13 @@ def command_analyze(client, args):
     scan_context = get_scan_context(input_dir)
     
     # Construct prompt
-    # We could send the full raw JSONs if context window allows, but for now we summarize in get_scan_context
-    # and pass that as 'scan_data'. 'context' argument can be metadata.
+    import datetime
+    target_name = os.path.basename(input_dir).split('_')[0]
+    current_date = datetime.date.today().strftime("%B %d, %Y")
     
     final_prompt = ANALYSIS_PROMPT_TEMPLATE.format(
+        target_name=target_name,
+        date=current_date,
         context=f"Target Scan Results for directory: {input_dir}",
         scan_data=scan_context
     )

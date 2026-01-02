@@ -16,7 +16,7 @@ class OpenRouterClient:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": site_url or "https://github.com/vapt-automation", # Construct valid optional headers
-            "X-Title": site_name or "Vṛthā VAPT Framework",
+            "X-Title": site_name or "Vrtha VAPT Framework",
         }
 
     def chat_completion(self, user_prompt, system_prompt=SYSTEM_PROMPT, temp=0.1):

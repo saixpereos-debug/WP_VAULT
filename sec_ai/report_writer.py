@@ -4,45 +4,24 @@ import os
 
 class VrthaPDFReport(FPDF):
     def header(self):
-        # Logo placeholder or Title
-        self.set_font('helvetica', 'B', 20)
-        self.set_text_color(0, 102, 204)
-        self.cell(0, 10, 'VRTHA - SECURITY ASSESSMENT REPORT', ln=True, align='C')
         self.set_font('helvetica', 'I', 10)
         self.set_text_color(100)
-        self.cell(0, 10, 'Advanced Vṛthā VAPT Framework v2.1', ln=True, align='C')
-        self.ln(10)
+        self.cell(0, 10, 'Web Security Assessment | Confidential', ln=True, align='R')
+        self.ln(5)
 
     def footer(self):
-        self.set_y(-15)
+        self.set_y(-20)
         self.set_font('helvetica', 'I', 8)
         self.set_text_color(128)
-        self.cell(0, 10, f'Page {self.page_no()} | Confidential | Generated on {datetime.date.today()}', 0, 0, 'C')
+        self.cell(0, 5, 'Xpereos Cybertec | Security Assessments', 0, 1, 'C')
+        self.cell(0, 5, f'Page {self.page_no()}', 0, 0, 'C')
 
 def generate_pdf_report(markdown_content, output_path, target_domain):
     pdf = VrthaPDFReport()
     pdf.add_page()
     
-    # Title Page
-    pdf.ln(40)
-    pdf.set_font('helvetica', 'B', 24)
-    pdf.set_text_color(0)
-    pdf.cell(0, 20, f'Target: {target_domain}', ln=True, align='C')
-    pdf.ln(10)
-    pdf.set_font('helvetica', '', 14)
-    pdf.cell(0, 10, f'Date: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', ln=True, align='C')
-    pdf.ln(30)
-    
-    # Disclaimer
-    pdf.set_font('helvetica', 'B', 12)
-    pdf.cell(0, 10, 'CONFIDENTIALITY NOTICE', ln=True, align='C')
-    pdf.set_font('helvetica', '', 10)
-    disclaimer = ("This report is confidential and intended solely for the use of the individual or "
-                  "entity to whom it is addressed. It contains highly sensitive security information. "
-                  "Unauthorized use, dissemination, or reproduction is strictly prohibited.")
-    pdf.multi_cell(0, 5, disclaimer, align='C')
-    
-    pdf.add_page()
+    # Content - AI Generated
+
     
     # Content
     # We'll do a basic markdown to PDF conversion here for simplicity.

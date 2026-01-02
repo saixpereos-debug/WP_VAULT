@@ -11,6 +11,12 @@ mkdir -p "${OUTPUT_DIR}"
 
 echo "Discovering URLs with Katana..." >> "${LOG_FILE}"
 
+# 1. Parse Robots.txt and Sitemap.xml (New Feature v2.1)
+echo "Parsing robots.txt and sitemap.xml for interesting URLs..." >> "${LOG_FILE}"
+python3 utils/robots_sitemap_parser.py "${TARGET}" \
+    --output "${OUTPUT_DIR}/vapt_${TARGET}_robots_all.txt" \
+    --output-interesting "${OUTPUT_DIR}/vapt_${TARGET}_robots_interesting.txt" >> "${LOG_FILE}" 2>&1 || true
+
 # Run Katana for JavaScript-based crawling
 ${KATANA_PATH} -u "https://${TARGET}" ${KATANA_OPTIONS} -o "${OUTPUT_DIR}/vapt_${TARGET}_urls_${TARGET}.txt" >> "${LOG_FILE}" 2>&1
 
@@ -33,7 +39,7 @@ if [ -x "${FEROXBUSTER_PATH}" ]; then
 fi
 
 # Combine all discovered URLs
-cat "${OUTPUT_DIR}"/vapt_${TARGET}_urls_*.txt "${OUTPUT_DIR}/vapt_${TARGET}_ferox.txt" 2>/dev/null | sort -u > "${OUTPUT_DIR}/vapt_${TARGET}_urls_all.txt"
+cat "${OUTPUT_DIR}"/vapt_${TARGET}_urls_*.txt "${OUTPUT_DIR}/vapt_${TARGET}_ferox.txt" "${OUTPUT_DIR}/vapt_${TARGET}_robots_all.txt" 2>/dev/null | sort -u > "${OUTPUT_DIR}/vapt_${TARGET}_urls_all.txt"
 
 URL_COUNT=$(wc -l < "${OUTPUT_DIR}/vapt_${TARGET}_urls_all.txt" 2>/dev/null || echo "0")
 echo "  Total unique URLs discovered: ${URL_COUNT}" >> "${LOG_FILE}"
