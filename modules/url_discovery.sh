@@ -25,7 +25,7 @@ fi
 # Run Feroxbuster for directory/file discovery (merged from content_discovery.sh)
 echo "Running Feroxbuster for content discovery..." >> "${LOG_FILE}"
 if [ -x "${FEROXBUSTER_PATH}" ]; then
-    ${FEROXBUSTER_PATH} -u "https://${TARGET}" \
+    timeout 30m ${FEROXBUSTER_PATH} -u "https://${TARGET}" \
         -w tools/wordlists/raft-medium-directories.txt \
         -x php,html,txt,js,json,xml,bak,old,zip \
         -t 50 --auto-bail --quiet \

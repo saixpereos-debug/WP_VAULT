@@ -1,4 +1,4 @@
-# Vṛthā (वृथा) - Advanced Vṛthā VAPT Framework v2.0
+# Vṛthā (वृथा) - Advanced Vṛthā VAPT Framework v2.1
 
 ![Vrtha Banner](utils/banner.py)
 
@@ -21,20 +21,21 @@ Traditional scanners often leave security professionals with mountains of discon
 
 ### 🕵️ Comprehensive Reconnaissance
 - **Optimized Subdomain Enumeration**: Chaining `subfinder`, `amass`, and `crt.sh`.
-- **Intelligent Tech Detection**: Blazing fast fingerprinting using the `httpx` Wappalyzer engine (replaces WhatWeb).
-- **DNS Security Analysis**: Targeted identification of SPF/DMARC/MX misconfigurations.
+- **Intelligent Tech Detection**: Blazing fast fingerprinting using the `httpx` Wappalyzer engine + **Interesting URL Extraction** (admin panels, git, backups).
+- **Resilient Orchestrator**: "Fail-safe" pipeline logic with robust fallback mechanisms (e.g., WPScan detection mode for hardened sites).
 
 ### 🧠 Red Team AI Analyst (`sec_ai`)
 - **Advanced Persona**: Operates as a Senior Penetration Tester with 15+ years of experience.
+- **Deep Audit**: **New** Plugin Vulnerability Audit - uses AI to analyze specific plugin versions for CVEs.
 - **Professional Reporting**: Generates high-quality **PDF reports** (branded and confidentiality-labeled).
 - **Anti-Hallucination**: Strictly evidence-based reporting using actual scan data.
 - **Exploit Reasoning**: Generates valid Python/Bash PoCs and calculates precise **CVSS v3.1** scores.
 
 ### 🛡️ Deep Discovery & Vulnerability Scanning
 - **Authenticated Scans**: New support for `--cookie` based testing in `main.sh`.
-- **Intelligent Fuzzing**: Technology-aware wordlist selection based on `httpx` fingerprints.
-- **Plugin Static Analysis (SAST)**: Automated analysis of identified plugin source code for dangerous PHP sinks.
-- **Deep Secrets Scraping**: Enhanced patterns for service keys (Twilio, Firebase, etc.) and JS endpoints.
+- **ZAP Daemon Integration**: Full OWASP ZAP automation via Docker (Spider + Active Scan).
+- **Smart Screenshots**: Captures evidence "at any cost" with configurable delays, targeting JSON endpoints and critical pages.
+- **Improved Nuclei**: Robust debugging logs and multi-stage template execution.
 
 ---
 
@@ -43,8 +44,8 @@ Traditional scanners often leave security professionals with mountains of discon
 | Phase | Tools |
 | :--- | :--- |
 | **Recon** | `subfinder`, `amass`, `katana`, `httpx` |
-| **Scanning** | `nuclei`, `wpscan`, `trufflehog` |
-| **Analysis** | `naabu`, `uncover`, `regex_scraper` |
+| **Scanning** | `nuclei`, `wpscan`, `zap-cli` (Docker) |
+| **Analysis** | `naabu`, `uncover`, `regex_scraper`, `wp_plugin_audit` |
 | **AI Content** | `sec_ai` (OpenRouter API - Qwen/GPT-4) |
 | **Reporting** | Custom Python/Shell reporting engine |
 
@@ -54,6 +55,7 @@ Traditional scanners often leave security professionals with mountains of discon
 
 ### Prerequisites
 - **OS**: Linux (Ubuntu/Debian recommended) or macOS.
+- **Containerization**: **Docker** is REQUIRED for ZAP integration.
 - **Permissions**: Sudo access for installing system dependencies.
 - **Minimum versions**: Python 3.9+, Go 1.21+, Ruby 3.0+.
 

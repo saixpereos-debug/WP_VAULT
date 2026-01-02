@@ -4,6 +4,7 @@ import sys
 import json
 import argparse
 import requests
+import re
 
 def select_targets(urls, mode, api_key, model):
     """

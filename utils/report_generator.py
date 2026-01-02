@@ -371,8 +371,26 @@ def generate_html(target, context, ai_report=""):
             
             html += """
         </div>
+
 """
     
+    # Add Technologies section
+    technologies = summary.get('technologies', {}).get('items', [])
+    if technologies:
+        html += """
+        <div class="section">
+            <h2>🛠️ Technologies Identified</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+"""
+        for tech in technologies:
+            html += f"""
+                <span style="background: #e1e8f0; color: #2c3e50; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9em; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">{tech}</span>
+"""
+        html += """
+            </div>
+        </div>
+"""
+
     # Add infrastructure info
     if context.get('network_info') or context.get('dns_info'):
         html += """

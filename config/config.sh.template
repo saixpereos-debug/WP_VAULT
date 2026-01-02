@@ -4,7 +4,7 @@
 # Copy this file to config.sh and add your API keys.
 
 # OpenRouter API
-OPENROUTER_API_KEY="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"
+OPENROUTER_API_KEY="your_openrouter_api_key_here"
 OPENROUTER_MODEL="qwen/qwen-2.5-coder-32b-instruct"
 # Resolve path relative to this config file
 SEC_AI_PATH="$(dirname "${BASH_SOURCE[0]}")/../sec_ai/main.py"
@@ -25,7 +25,7 @@ WHATWEB_PATH="/usr/bin/whatweb"
 # V3 Tools
 GAU_PATH="/opt/tools/go/bin/gau"
 WAYBACKURLS_PATH="/opt/tools/go/bin/waybackurls"
-TRUFFLEHOG_PATH="/usr/local/bin/trufflehog"
+
 FFUF_PATH="/usr/bin/ffuf"
 DALFOX_PATH="/opt/tools/go/bin/dalfox"
 SQLMAP_PATH="/usr/bin/sqlmap"
@@ -33,19 +33,21 @@ SQLMAP_PATH="/usr/bin/sqlmap"
 # Tool options
 SUBFINDER_OPTIONS=""
 AMASS_OPTIONS="-passive"
-KATANA_OPTIONS="-depth 2 -js-crawl"
+KATANA_OPTIONS="-depth 3 -js-crawl -known-files all -automatic-form-fill -c 20 -silent"
 HTTPX_OPTIONS="-status-code -title -tech-detect -content-length -silent"
 HTTPX_MATCHER_CODES="200,301,302,403"
 HTTPX_MATCHER_DOMAINS="admin,api,backup,config,database,dev,old,stage,test"
 HTTPX_PATHS_TO_PROBE="/admin,/wp-admin,/wp-login.php,/wp-config.php,/backup,/old,/test,/dev"
 HTTPX_METHODS_TO_CHECK="GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD"
 WAFW00F_OPTIONS="-a"
-GOWITNESS_OPTIONS="--delay 2 --timeout 15 --threads 5 --resolution 1920x1080"
+GOWITNESS_OPTIONS="--delay 5 --timeout 30 --threads 5 --resolution 1920x1080"
+# Screenshot Wait Time (seconds) - configurable wait time before capturing
+SCREENSHOT_DELAY="5"
 NAABU_OPTIONS="-top-ports 1000"
 UNCOVER_OPTIONS="-l 20"
 WPSCAN_OPTIONS="--random-user-agent --detection-mode aggressive --disable-tls-checks --ignore-main-redirect"
 # Note: --url is handled dynamically by the module script
-WPSCAN_API_TOKEN="your_wpscan_token_here"
+WPSCAN_API_TOKEN="your_wpscan_api_token_here"
 NUCLEI_OPTIONS="-c 50 -bs 25 -retries 2 -no-mhe"
 
 # V3 Options

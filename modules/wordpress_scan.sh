@@ -14,9 +14,34 @@ scan_wordpress() {
     local output_file="${OUTPUT_DIR}/vapt_${TARGET}_wpscan_${domain}.txt"
     
     echo "Scanning WordPress site: $domain..." >> "${LOG_FILE}"
-    
-    # Use a standard GET request with a common UA to check accessibility, as some WAFs block HEAD.
+
+    # Check for WordPress Fingerprints FIRST
     local ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    local is_wordpress=false
+
+    if curl -s -k -L --max-time 10 -H "User-Agent: $ua" "https://${domain}" | grep -qiE "wp-content|wp-includes|wp-json|wp-admin|WordPress"; then
+         echo "  [+] WordPress confirmed on $domain (Fingerprints)." >> "${LOG_FILE}"
+         is_wordpress=true
+    else
+         echo "  [?] No obvious WordPress fingerprints on $domain. Running WPScan in check mode..." >> "${LOG_FILE}"
+         # Fallback: Run WPScan in detection mode only
+         if ${WPSCAN_PATH} --url "https://${domain}" --stealthy --detection-mode aggressive -e u1-1 --no-banner > "${OUTPUT_DIR}/wpscan_check.log" 2>&1; then
+             if grep -qi "The remote website is up, but does not seem to be running WordPress" "${OUTPUT_DIR}/wpscan_check.log"; then
+                 echo "  [!] WPScan confirmed: Not WordPress." >> "${LOG_FILE}"
+                 return 0
+             else
+                 echo "  [+] WPScan detected WordPress!" >> "${LOG_FILE}"
+                 is_wordpress=true
+             fi
+         else
+             echo "  [!] WPScan check failed or timed out." >> "${LOG_FILE}"
+         fi
+    fi
+
+    if [ "$is_wordpress" = false ]; then
+        return 0
+    fi
+
     if ! curl -s -L --max-time 15 -k -H "User-Agent: $ua" "https://${domain}" > /dev/null 2>&1; then
         # Try HTTP if HTTPS fails
         if ! curl -s -L --max-time 15 -H "User-Agent: $ua" "http://${domain}" > /dev/null 2>&1; then
@@ -30,10 +55,10 @@ scan_wordpress() {
     fi
     
     # Build aggressive 2025-standard command
-    local cmd="${WPSCAN_PATH} --url \"${protocol}://${domain}\" --enumerate u,ap,at,tt --plugins-detection aggressive --max-threads 20 --stealthy --force --detection-mode mixed --disable-tls-checks --ignore-main-redirect --output \"${output_file}\" --format cli"
+    local cmd="${WPSCAN_PATH} --url ${protocol}://${domain} --enumerate u,ap,at,tt --passwords /usr/share/wordlists/rockyou.txt --plugins-detection aggressive --max-threads 20 --stealthy --verbose --force --detection-mode mixed --disable-tls-checks --ignore-main-redirect --output \"${output_file}\""
     
     # Add API token if present
-    if [ -n "$WPSCAN_API_TOKEN" ]; then
+    if [ -n "$WPSCAN_API_TOKEN" ] && [ "$WPSCAN_API_TOKEN" != "your_wpscan_api_token_here" ]; then
         cmd="$cmd --api-token $WPSCAN_API_TOKEN"
     fi
     
@@ -48,15 +73,27 @@ scan_wordpress() {
         echo "  WPScan timed out for $domain" >> "${LOG_FILE}"
         echo "[!] WPScan Timeout for $domain after 10 minutes." > "${output_file}"
     elif [ $exit_code -ne 0 ]; then
-        echo "  WPScan failed for $domain (exit code: $exit_code). Check wpscan_debug.log" >> "${LOG_FILE}"
-        echo "[!] WPScan Failed for $domain (Exit Code: $exit_code)" > "${output_file}"
-        tail -n 20 "${OUTPUT_DIR}/wpscan_debug.log" >> "${output_file}"
+         # Check if it was a false positive detection error
+         if grep -q "not seem to be running WordPress" "${OUTPUT_DIR}/wpscan_debug.log"; then
+             echo "  WPScan says not WordPress during full scan." >> "${LOG_FILE}"
+             echo "[!] Not WordPress." > "${output_file}"
+         else
+             echo "  WPScan failed for $domain (exit code: $exit_code). Check wpscan_debug.log" >> "${LOG_FILE}"
+             echo "[!] WPScan Failed for $domain (Exit Code: $exit_code)" > "${output_file}"
+             tail -n 20 "${OUTPUT_DIR}/wpscan_debug.log" >> "${output_file}"
+         fi
     else
         echo "  WPScan completed for $domain" >> "${LOG_FILE}"
-        if [ ! -s "${output_file}" ]; then
-            echo "[!] WPScan completed but output file is empty. Check debug.log" >> "${LOG_FILE}"
-            echo "[!] WPScan returned no results for $domain" > "${output_file}"
-            cat "${OUTPUT_DIR}/wpscan_debug.log" >> "${output_file}"
+    fi
+
+    # AI Audit of Plugins (New Feature)
+    if [ -s "${output_file}" ]; then
+        echo "  Running AI Plugin Vulnerability Assessment..." >> "${LOG_FILE}"
+        # Check if AI enabled
+        if [ "$AI_CHECK_STATUS" -eq 0 ]; then
+             python3 utils/wp_plugin_audit.py "${output_file}" --ai >> "${LOG_FILE}" 2>&1
+        else
+             python3 utils/wp_plugin_audit.py "${output_file}" >> "${LOG_FILE}" 2>&1
         fi
     fi
 

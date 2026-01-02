@@ -15,8 +15,8 @@ URL_LIST="${OUTPUT_DIR}/urls_to_screenshot.txt"
 
 echo "Preparing sensitive URLs for screenshot capture..." >> "${LOG_FILE}"
 
-# Define patterns for sensitive/interesting endpoints
-SENSITIVE_PATTERNS="admin|login|dashboard|panel|console|config|backup|\.env|\.git|wp-admin|wp-login|phpmyadmin|cpanel|webmail|portal|manager|api|upload|debug|test|dev|staging|internal"
+# Define patterns for sensitive/interesting endpoints, including JSON
+SENSITIVE_PATTERNS="admin|login|dashboard|panel|console|config|backup|\.env|\.git|wp-admin|wp-login|phpmyadmin|cpanel|webmail|portal|manager|api|upload|debug|test|dev|staging|internal|\.json|wp-json"
 
 # Filter sensitive URLs from all discovered URLs
 if [ -f "${ALL_URLS_FILE}" ]; then
@@ -64,6 +64,7 @@ if [ -z "$CHROMIUM_PATH" ]; then
 fi
 
 echo "  Using browser: ${CHROMIUM_PATH}" >> "${LOG_FILE}"
+echo "  Screenshot Delay: ${SCREENSHOT_DELAY} seconds" >> "${LOG_FILE}"
 
 # Run gowitness with explicit settings for reliability
 ${GOWITNESS_PATH} scan file \
@@ -71,7 +72,7 @@ ${GOWITNESS_PATH} scan file \
     --chrome-path "${CHROMIUM_PATH}" \
     --screenshot-path "${OUTPUT_DIR}" \
     --screenshot-format png \
-    --delay 5 \
+    --delay "${SCREENSHOT_DELAY:-5}" \
     -t 5 \
     -T 45 \
     --write-db \

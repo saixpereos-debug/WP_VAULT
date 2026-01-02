@@ -82,7 +82,7 @@ if [ -x "$SQLMAP_PATH" ]; then
         jq -r '.findings."SQL Injection"[]?.url // empty' "${ROUTES_FILE}" 2>/dev/null > "${OUTPUT_DIR}/sqli_candidates.txt"
     fi
     # Also grab suspicious common params
-    grep -iE "id=|user=|page=|search=|q=|cat=|p=|post=" "$URL_LIST" 2>/dev/null >> "${OUTPUT_DIR}/sqli_candidates.txt"
+    grep -iE "id=|user=|page=|search=|q=|cat=|p=|post=|key=|token=|view=|type=" "$URL_LIST" 2>/dev/null >> "${OUTPUT_DIR}/sqli_candidates.txt"
     sort -u "${OUTPUT_DIR}/sqli_candidates.txt" -o "${OUTPUT_DIR}/sqli_candidates.txt"
     
     if [ -s "${OUTPUT_DIR}/sqli_candidates.txt" ]; then
@@ -93,7 +93,7 @@ if [ -x "$SQLMAP_PATH" ]; then
     else
         # If no clear candidates, try smart crawl on the main page
         echo "  No clear SQLi candidates. Running smart crawl on root..." >> "${LOG_FILE}"
-        SQLMAP_CMD="$SQLMAP_PATH -u \"https://${TARGET}\" --batch --smart --forms --crawl=2 --random-agent --output-dir=\"${OUTPUT_DIR}/sqlmap\""
+        SQLMAP_CMD="$SQLMAP_PATH -u \"https://${TARGET}\" --batch --smart --forms --crawl=2 --level=2 --risk=1 --random-agent --output-dir=\"${OUTPUT_DIR}/sqlmap\""
         [ -n "$AUTH_COOKIE" ] && SQLMAP_CMD="$SQLMAP_CMD --cookie=\"$AUTH_COOKIE\""
         eval "$SQLMAP_CMD" >> "${LOG_FILE}" 2>&1 || true
     fi

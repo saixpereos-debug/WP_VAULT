@@ -30,6 +30,16 @@ done
 
 # Load configuration and UI logger
 set -a
+# Ensure config exists
+if [ ! -f "config/config.sh" ]; then
+    if [ -f "config/config.sh.template" ]; then
+        echo "Creating config.sh from template..."
+        cp config/config.sh.template config/config.sh
+    else
+        echo -e "${RED}[!] Critical Error: config.sh.template not found!${NC}"
+        exit 1
+    fi
+fi
 source config/config.sh
 # Ensure logger is sourced for UI functions (print_banner, run_with_spinner, etc.)
 source utils/logger.sh
@@ -37,7 +47,7 @@ source utils/logger.sh
 source utils/check_deps.sh
 
 # Initialize AI status (1 = failed/disabled, 0 = success)
-AI_CHECK_STATUS=1
+export AI_CHECK_STATUS=1
 
 # Interactive API Key Check with Connectivity Test
 check_api_keys() {
@@ -53,7 +63,8 @@ check_api_keys() {
             read -p "   Please enter your OpenRouter API Key: " input_key
             if [ -n "$input_key" ]; then
                 OPENROUTER_API_KEY="$input_key"
-                sed -i "s/OPENROUTER_API_KEY=\".*\"/OPENROUTER_API_KEY=\"$input_key\"/" config/config.sh
+                # Use | as delimiter to avoid issues with / in keys
+                sed -i "s|OPENROUTER_API_KEY=\".*\"|OPENROUTER_API_KEY=\"$input_key\"|" config/config.sh
                 config_updated=true
             else
                 echo -e "${RED}[!] Key is required for AI features. Disabling AI for this session.${NC}"
@@ -91,13 +102,13 @@ check_api_keys() {
 
 # Check WPScan API Token (Non-critical, no connectivity test needed here)
 check_wpscan_token() {
-    if [ -z "$WPSCAN_API_TOKEN" ]; then
+    if [ -z "$WPSCAN_API_TOKEN" ] || [ "$WPSCAN_API_TOKEN" == "your_wpscan_api_token_here" ]; then
         echo -e "${YELLOW}[!] WPScan API Token is missing.${NC}"
         echo -e "   You can get a free token from https://wpscan.com/api"
         read -p "   Please enter your WPScan API Token (or press Enter to skip): " input_token
         if [ -n "$input_token" ]; then
             WPSCAN_API_TOKEN="$input_token"
-            sed -i "s/WPSCAN_API_TOKEN=\".*\"/WPSCAN_API_TOKEN=\"$input_token\"/" config/config.sh
+            sed -i "s|WPSCAN_API_TOKEN=\".*\"|WPSCAN_API_TOKEN=\"$input_token\"|" config/config.sh
             export WPSCAN_API_TOKEN
         fi
     fi
@@ -150,15 +161,30 @@ execute_module() {
             count=$(cat "${output_dir}/vapt_${TARGET}_subdomains_all.txt" 2>/dev/null | wc -l)
             log_finding "$count" "Subdomains"
             ;;
+        "httpx_live_filter.sh")
+            if [ ! -s "${output_dir}/live_hosts.txt" ]; then
+                 echo -e "   ${RED}✖ Critical Failure: live_hosts.txt is empty. Stopping pipeline.${NC}"
+                 exit 1
+            fi
+            count=$(cat "${output_dir}/live_hosts.txt" 2>/dev/null | wc -l)
+            log_finding "$count" "Live Hosts"
+            ;;
         "url_discovery.sh")
             count=$(cat "${output_dir}/vapt_${TARGET}_urls_all.txt" 2>/dev/null | wc -l)
             log_finding "$count" "URLs"
             ;;
         "nuclei_scan.sh"|"nuclei_wayback.sh")
-            # This is trickier, let's count vulnerabilities from json
+            # Check for non-empty results logic or ensure folder creation
+            if [ ! -d "${output_dir}" ]; then mkdir -p "${output_dir}"; fi
             count=$(jq '.summary.total_findings // 0' "${output_dir}"/*.json 2>/dev/null | head -n 1)
             log_finding "${count:-0}" "Vulnerabilities Identified"
             ;;
+        "zap_daemon.sh")
+            if [ ! -s "${output_dir}/zap_report.html" ]; then
+                 echo -e "   ${RED}✖ ZAP Report generation failed.${NC}"
+            fi
+            ;;
+
         "wordpress_scan.sh")
             if [ -s "${output_dir}/vapt_${TARGET}_wpscan_all.txt" ]; then
                 log_finding 1 "WordPress Scan Complete"
@@ -205,11 +231,11 @@ if [ "$AI_CHECK_STATUS" -eq 0 ]; then
 fi
 
 print_banner "Active Vulnerability Phase"
-execute_module "Secrets Scanning (TruffleHog & Vṛthā Scraper)" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
+execute_module "Extracting Identity & Secrets" "secrets_scan.sh" "${RESULTS_DIR}/secrets" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt"
 execute_module "Advanced Fuzzing & Exploitation (FFUF/Dalfox/SQLMap)" "fuzzing.sh" "${RESULTS_DIR}/fuzzing" "tools/wordlists/raft-medium-directories.txt" "${RESULTS_DIR}/vapt_${TARGET}_master_urls.txt" "$COOKIE"
 execute_module "Running Nuclei Scans (Standard)" "nuclei_scan.sh" "${RESULTS_DIR}/nuclei"
 execute_module "Running Nuclei Scans (Wayback-Enhanced)" "nuclei_wayback.sh" "${RESULTS_DIR}/nuclei"
-execute_module "OWASP ZAP Baseline & Active Scan" "zap_scan.sh" "${RESULTS_DIR}/zap"
+execute_module "OWASP ZAP Baseline & Active Scan" "zap_daemon.sh" "${RESULTS_DIR}/zap" "$COOKIE"
 
 execute_module "Analyzing WordPress Core" "wordpress_scan.sh" "${RESULTS_DIR}/wordpress"
 execute_module "Static Analysis of Plugins (SAST)" "plugin_sast.sh" "${RESULTS_DIR}/wordpress"

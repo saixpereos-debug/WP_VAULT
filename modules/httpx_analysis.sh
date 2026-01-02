@@ -27,6 +27,7 @@ ${HTTPX_PATH} -list "${URL_LIST}" \
     -json -o "${OUTPUT_DIR}/vapt_${TARGET}_httpx_combined.json" >> "${LOG_FILE}" 2>&1
 
 # Process and extract technologies using Python
+# Process and extract technologies and interesting URLs using Python
 python3 << 'PYTHON_SCRIPT'
 import json
 import os
@@ -42,7 +43,11 @@ if not os.path.exists(combined_file):
     sys.exit(0)
 
 technologies = set()
+interesting_urls = set()
 tech_data = []
+
+# Probe paths that are considered interesting
+probe_paths = ["/admin", "/wp-admin", "/wp-login.php", "/backup", "/old", "/test", "/dev", "/.env", "/.git"]
 
 try:
     with open(combined_file, 'r') as f:
@@ -60,6 +65,18 @@ try:
                 if 'technologies' in data and data['technologies']:
                     for tech in data['technologies']:
                         technologies.add(tech)
+
+                # Extract interesting URLs based on status code and url match
+                # If the URL ends with one of the probe paths and is live (200, 301, 302, 403)
+                url = data.get('url', '')
+                status = data.get('status_code', 0)
+                
+                if status in [200, 301, 302, 403]:
+                    # Check if it was one of our probes
+                    for probe in probe_paths:
+                        if probe in url:
+                            interesting_urls.add(f"{url} [{status}]")
+                            break
                         
             except json.JSONDecodeError:
                 continue
@@ -72,7 +89,18 @@ with open(tech_file, 'w') as f:
     for tech in sorted(technologies):
         f.write(f"{tech}\n")
 
+# Save interesting URLs
+interesting_file = f"{output_dir}/vapt_{target}_httpx_interesting.txt"
+with open(interesting_file, 'w') as f:
+    for url in sorted(interesting_urls):
+        f.write(f"{url}\n")
+    if not interesting_urls:
+         # Write "No interesting URLs found" or similar if empty? 
+         # Or leave empty but valid file
+         pass
+
 print(f"Technologies detected: {len(technologies)}", file=sys.stderr)
+print(f"Interesting URLs found: {len(interesting_urls)}", file=sys.stderr)
 
 PYTHON_SCRIPT
 
